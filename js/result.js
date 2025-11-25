@@ -96,7 +96,7 @@ function initResult() {
     
     if (!selectedCity || !familySize || !durationDays || !address) {
         alert("必要な入力情報がありません。ホーム画面に戻ります。");
-        window.location.href = 'home.html';
+        window.location.href = 'index.html';
         return;
     }
 

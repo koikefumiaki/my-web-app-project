@@ -4,11 +4,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const backButton = document.getElementById('back-to-previous');
 
     // ブラウザの履歴から直前のURLを取得
-    // 戻るURLが履歴に存在しない場合は、デフォルトで home.html に設定
+    // 戻るURLが履歴に存在しない場合は、デフォルトで index.html に設定
     const referrer = document.referrer;
     
-    // 開発環境で referrer が空になることがあるため、home.htmlをデフォルトにする
-    let backUrl = 'home.html'; 
+    // 開発環境で referrer が空になることがあるため、index.htmlをデフォルトにする
+    let backUrl = 'index.html'; 
 
     if (referrer) {
         // 参照元URLを解析
@@ -18,11 +18,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (path.includes('result.html')) {
             // result.html から来た場合は、そのURL全体（パラメータ含む）に戻る
             backUrl = referrer;
-        } else if (path.includes('home.html')) {
-            // home.html から来た場合は、home.html に戻る
-            backUrl = 'home.html';
+        } else if (path.includes('index.html')) {
+            // index.html から来た場合は、index.html に戻る
+            backUrl = 'index.html';
         }
-        // その他の場合は、デフォルトの home.html のまま
+        // その他の場合は、デフォルトの index.html のまま
     }
     
     // 戻るボタンの href 属性を設定
