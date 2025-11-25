@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>愛知マイ備蓄ナビ - 入力</title>
+    <link rel="stylesheet" href="../css/base.css">
+    <link rel="stylesheet" href="../css/home.css">
+</head>
+<body>
+
+    <header>
+        <h1>愛知マイ備蓄ナビ</h1>
+    </header>
+
+    <main class="container">
+        <section class="app-description">
+            <p>
+                <strong>愛知マイ備蓄ナビ</strong> は、愛知県への転居者や若年層の方々を主な対象とした
+                <br><strong>南海トラフ地震への備えを促進する</strong>Webアプリケーションです。
+            </p>
+            <p class="mt-10">
+                自宅の住所と家族構成を入力するだけで<br>以下の防災情報をワンストップで提供します。
+            </p>
+            
+            <ul class="function-list">
+                <li>
+                    選択した地域の<strong>最大震度・津波高</strong>などの被害想定 <br>（機能1: 地域別リスク可視化）
+                </li>
+                <li>
+                    人数・日数に合わせた<strong>飲料水・食料</strong>などの必要な備蓄量 <br>（機能2: 家族構成別 備蓄計算）
+                </li>
+                <li>
+                    入力住所から<strong>最も近い指定避難所</strong>の位置情報 <br>（機能3: 最寄り避難所マップ）
+                </li>
+            </ul>
+        </section>
+        
+        </main>
+
+    <main class="container">
+        
+        <section id="hazard-shelter-input" class="card">
+            <h2>被害状況</h2>
+            
+            <div class="input-group">
+                <label for="city-select">市町村の選択</label>
+                <select id="city-select">
+                    <option value="" disabled selected>市町村を選択してください</option>
+                </select>
+                <p class="note">選択された市町村の被害想定を表示します。</p>
+            </div>
+            
+            </section>
+
+        <section id="supply-input" class="card">
+            <h2>備蓄計算</h2>
+            <p class="section-description">家族構成と日数を入力してください</p>
+            
+            <div class="flex-group">
+                <div class="input-group">
+                    <label for="family-size">人数</label>
+                    <input type="number" id="family-size" value="1" min="1">
+                </div>
+                <div class="input-group">
+                    <label for="duration-days">日数</label>
+                    <input type="number" id="duration-days" value="7" min="1">
+                </div>
+            </div>
+        </section>
+
+        <button id="search-button">検索</button>
+
+    </main>
+
+    <script src="../js/home.js" defer></script>
+</body>
+<!-- <footer>
+    <p><a href="privacy.html" class="footer-link">プライバシーポリシー</a></p>
+</footer> -->
+</html>

@@ -1,0 +1,244 @@
+/* =====================================================================
+// 愛知マイ備蓄ナビ - 共通スタイルシート (base.css)
+// ===================================================================== */
+
+/* ----------------------------------------------------
+// 1. 全体のリセットと基本設定
+// ---------------------------------------------------- */
+:root {
+    /* カラーパレット */
+    --primary-color: #007bff; /* メインカラー (青系) */
+    --secondary-color: #28a745; /* アクセントカラー (緑系) */
+    --background-color: #f4f7f9; /* 背景色 */
+    --card-background: #ffffff; /* カード背景色 */
+    --border-color: #e9ecef; /* ボーダー色 */
+    --text-color: #343a40; /* テキスト色 */
+    --danger-color: #dc3545; /* 危険・注意色 */
+    --warning-color: #d9534f; /* 注意テキスト色 */
+    --info-color: #5bc0de; /* 情報カラー */
+    --list-background: #f9f9f9; /* リスト背景色 */
+    --necessity-background: #f8f9fa; /* 必需品リスト背景色 */
+    --note-color: #6c757d; /* ノートテキスト色 */
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    line-height: 1.6;
+    padding: 20px 0;
+}
+
+/* ----------------------------------------------------
+// 2. レイアウト (コンテナとセクション)
+// ---------------------------------------------------- */
+.container {
+    width: 100%;
+    max-width: 600px; /* スマートフォンでの利用を考慮した最大幅 */
+    margin: 0 auto;
+    padding: 0 15px;
+}
+
+/* ----------------------------------------------------
+// 3. ヘッダーとフッター
+// ---------------------------------------------------- */
+header {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 15px 0;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative; /* 独立アイコンの基準点として設定 */
+    border-bottom: none;
+}
+
+/* メインタイトルリンクのスタイル（中央の文字） */
+.main-title-link {
+    display: block;
+    text-align: center;
+    font-size: 1.8rem;
+    text-decoration: none;
+    color: white;
+    font-weight: bold;
+    margin: 0;
+}
+
+/* 左上の戻るアイコンのスタイル */
+.back-icon-button {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 2.0rem;
+    text-decoration: none;
+    color: white;
+    padding: 5px;
+    line-height: 1;
+    z-index: 10;
+    transition: opacity 0.2s;
+}
+
+.back-icon-button:hover {
+    opacity: 0.7;
+}
+
+footer {
+    text-align: center;
+    padding: 20px 0;
+    margin-top: 30px;
+    font-size: 0.8rem;
+    color: var(--note-color);
+}
+
+.footer-link {
+    color: var(--note-color);
+    text-decoration: underline;
+}
+
+/* ----------------------------------------------------
+// 4. カードとセクション
+// ---------------------------------------------------- */
+.card {
+    background-color: var(--card-background);
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+.card h2 {
+    font-size: 1.5rem;
+    color: var(--primary-color);
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+/* アプリ説明文の調整と中央寄せ */
+.app-description {
+    margin-bottom: 30px;
+    padding: 15px;
+    background-color: #e9f7ff;
+    border-radius: 8px;
+    border-left: 5px solid var(--primary-color);
+    text-align: center;
+}
+
+.app-description p {
+    font-size: 1.0rem;
+    line-height: 1.7;
+    margin-bottom: 10px;
+}
+
+.app-description .mt-10 {
+    margin-top: 10px;
+}
+
+.function-list {
+    list-style: none;
+    padding: 0;
+    margin-top: 10px;
+    display: inline-block;
+    text-align: left;
+    padding-left: 0;
+}
+
+.function-list li {
+    font-size: 1.0rem;
+    line-height: 1.7;
+    padding-left: 25px;
+    position: relative;
+    margin-bottom: 5px;
+    text-align: left;
+}
+
+.function-list li::before {
+    content: "👉";
+    position: absolute;
+    left: 0;
+    color: var(--secondary-color);
+}
+
+/* ----------------------------------------------------
+// 5. フォーム要素の共通スタイルとボタン
+// ---------------------------------------------------- */
+.input-group {
+    margin-bottom: 20px;
+}
+
+.input-group label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 8px;
+    font-size: 1.1rem;
+}
+
+input[type="text"],
+input[type="number"],
+select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    font-size: 1rem;
+    transition: border-color 0.3s;
+}
+
+input:focus,
+select:focus {
+    border-color: var(--primary-color);
+    outline: none;
+}
+
+.note {
+    font-size: 0.85rem;
+    color: var(--note-color);
+    margin-top: 5px;
+}
+
+/* 備蓄計算セクションの注意書き */
+.supply-note {
+    color: var(--warning-color); 
+    margin-top: 5px;
+}
+
+/* 検索ボタンとアクションボタンの共通スタイル */
+#search-button,
+.shelter-action-button { 
+    width: 100%;
+    padding: 15px;
+    background-color: var(--secondary-color);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#search-button:hover,
+.shelter-action-button:hover { 
+    background-color: #218838; /* ホバー時の暗い緑 */
+}
+
+/* ----------------------------------------------------
+// 7. メディアクエリ (デザインの調整)
+// ---------------------------------------------------- */
+/* スマートフォンより大きい画面 (タブレットなど) の調整 */
+@media (min-width: 600px) {
+    header h1 {
+        font-size: 2rem;
+    }
+    .card {
+        padding: 30px;
+    }
+}

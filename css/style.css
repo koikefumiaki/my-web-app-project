@@ -1,0 +1,506 @@
+/* =====================================================================
+// 愛知マイ備蓄ナビ - スタイルシート (style.css)
+// ===================================================================== */
+
+/* ----------------------------------------------------
+// 1. 全体のリセットと基本設定
+// ---------------------------------------------------- */
+:root {
+/* カラーパレット */
+--primary-color: #007bff; /* メインカラー (青系) */
+--secondary-color: #28a745; /* アクセントカラー (緑系) */
+--background-color: #f4f7f9; /* 背景色 */
+--card-background: #ffffff; /* カード背景色 */
+--border-color: #e9ecef; /* ボーダー色 */
+--text-color: #343a40; /* テキスト色 */
+--danger-color: #dc3545; /* 危険・注意色 */
+--warning-color: #d9534f; /* 注意テキスト色 */
+--info-color: #5bc0de; /* 情報カラー */
+--list-background: #f9f9f9; /* リスト背景色 */
+--necessity-background: #f8f9fa; /* 必需品リスト背景色 */
+--note-color: #6c757d; /* ノートテキスト色 */
+}
+
+* {
+margin: 0;
+padding: 0;
+box-sizing: border-box;
+}
+
+body {
+font-family: 'Helvetica Neue', Arial, sans-serif;
+background-color: var(--background-color);
+color: var(--text-color);
+line-height: 1.6;
+padding: 20px 0;
+}
+
+/* ----------------------------------------------------
+// 2. レイアウト (コンテナとセクション)
+// ---------------------------------------------------- */
+.container {
+width: 100%;
+max-width: 600px; /* スマートフォンでの利用を考慮した最大幅 */
+margin: 0 auto;
+padding: 0 15px;
+}
+
+/* ----------------------------------------------------
+// 3. ヘッダーとフッター
+// ---------------------------------------------------- */
+header {
+background-color: var(--primary-color);
+color: white;
+padding: 15px 0;
+margin-bottom: 20px;
+/* 💡 修正点: result.htmlの中央寄せを実現 + position:relativeを追加 */
+display: flex;
+justify-content: center;
+align-items: center;
+position: relative; /* 独立アイコンの基準点として設定 */
+/* result.htmlの境界線が不要になるため削除 */
+border-bottom: none;
+}
+
+/* 💡 新しいメインタイトルリンクのスタイル（中央の文字） */
+.main-title-link {
+display: block;
+text-align: center;
+font-size: 1.8rem; /* header h1と同じサイズで強調 */
+text-decoration: none;
+color: white;
+font-weight: bold;
+margin: 0; /* 中央配置のためマージンをリセット */
+}
+
+/* 💡 新規追加: 左上の戻るアイコンのスタイル */
+.back-icon-button {
+/* 絶対配置で左上隅に固定 */
+position: absolute;
+left: 15px; /* 左端からの距離 */
+top: 50%; /* 縦方向の中央 */
+transform: translateY(-50%); /* 縦方向の中央揃えを微調整 */
+font-size: 2.0rem; /* アイコンを大きくして目立たせる */
+text-decoration: none;
+color: white; /* 白い色 */
+padding: 5px;
+line-height: 1;
+z-index: 10; /* 他の要素より手前に表示 */
+transition: opacity 0.2s;
+}
+
+.back-icon-button:hover {
+opacity: 0.7;
+}
+
+footer {
+text-align: center;
+padding: 20px 0;
+margin-top: 30px;
+font-size: 0.8rem;
+color: var(--note-color);
+}
+
+.footer-link {
+    color: var(--note-color); /* 既存のインラインスタイル（#6c757d）に相当 */
+    text-decoration: underline;
+}
+
+/* ----------------------------------------------------
+// 4. カードとセクション
+// ---------------------------------------------------- */
+.card {
+background-color: var(--card-background);
+padding: 25px;
+border-radius: 8px;
+box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+margin-bottom: 20px;
+}
+
+.card h2 {
+font-size: 1.5rem;
+color: var(--primary-color);
+border-bottom: 2px solid var(--border-color);
+padding-bottom: 10px;
+margin-bottom: 20px;
+}
+
+/* ----------------------------------------------------
+// 4. カードとセクション (続き: アプリ説明文の調整と中央寄せ)
+// ---------------------------------------------------- */
+
+.app-description {
+/* 既存のスタイル */
+margin-bottom: 30px;
+padding: 15px;
+background-color: #e9f7ff;
+border-radius: 8px;
+border-left: 5px solid var(--primary-color);
+/* 💡 追加: 内部の要素を中央揃えにする設定 */
+text-align: center; /* テキスト全体を中央揃え */
+}
+
+.app-description p {
+font-size: 1.0rem;
+line-height: 1.7;
+margin-bottom: 10px;
+}
+
+.app-description .mt-10 {
+margin-top: 10px;
+}
+
+.function-list {
+/* 既存のスタイル */
+list-style: none;
+padding: 0;
+margin-top: 10px;
+
+/* 💡 追加: リスト（ul）全体を中央揃えするための設定 */
+display: inline-block; /* ブロック要素をコンテンツ幅に縮小 */
+text-align: left; /* リスト項目（li）のテキスト自体は左揃えに戻す */
+padding-left: 0;
+}
+
+.function-list li {
+font-size: 1.0rem;
+line-height: 1.7;
+padding-left: 25px;
+position: relative;
+margin-bottom: 5px;
+/* 💡 修正: li自体は左揃え（リスト項目の中のテキストが中央に寄るのを防ぐ）*/
+text-align: left;
+}
+
+/* 💡 リストの頭に「👉」の絵文字をCSSで表示 (変更なし) */
+.function-list li::before {
+content: "👉";
+position: absolute;
+left: 0;
+color: var(--secondary-color);
+}
+
+/* ----------------------------------------------------
+// 5. フォーム要素
+// ---------------------------------------------------- */
+.input-group {
+margin-bottom: 20px;
+}
+
+.input-group label {
+display: block;
+font-weight: bold;
+margin-bottom: 8px;
+font-size: 1.1rem;
+}
+
+input[type="text"],
+input[type="number"],
+select {
+width: 100%;
+padding: 12px;
+border: 1px solid var(--border-color);
+border-radius: 5px;
+font-size: 1rem;
+transition: border-color 0.3s;
+}
+
+input:focus,
+select:focus {
+border-color: var(--primary-color);
+outline: none;
+}
+
+/* 人数・日数の横並びグループ */
+.flex-group {
+display: flex;
+gap: 15px;
+margin-bottom: 20px;
+}
+
+.flex-group .input-group {
+flex: 1;
+margin-bottom: 0; /* 親要素で既にマージンを設定済みのため */
+}
+
+.note {
+font-size: 0.85rem;
+color: var(--note-color);
+margin-top: 5px;
+}
+
+/* 備蓄計算セクションの注意書き */
+.supply-note {
+color: var(--warning-color); 
+margin-top: 5px;
+}
+
+/* 検索ボタンとアクションボタンの共通スタイル */
+/* 💡 修正: home.htmlの検索ボタンと避難所ボタンを共通化 */
+#search-button,
+.shelter-action-button { 
+    width: 100%;
+    padding: 15px;
+    background-color: var(--secondary-color);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#search-button:hover,
+.shelter-action-button:hover { 
+    background-color: #218838; /* ホバー時の暗い緑 */
+}
+
+/* 💡 新規追加: 避難所ボタンを横並びにするグループ */
+.button-group {
+    display: flex; /* 子要素を横並びにする */
+    gap: 10px; /* ボタン間のスペース */
+    margin-top: 5px; 
+    margin-bottom: 20px;
+}
+
+/* 💡 新規追加: グループ内のボタンが均等に幅を持つように */
+.button-group .shelter-action-button {
+    flex: 1; /* 均等な幅を確保 */
+}
+
+
+/* ----------------------------------------------------
+// 6. 結果表示エリア
+// ---------------------------------------------------- */
+#result-section {
+opacity: 1;
+transition: opacity 0.5s ease-in-out;
+}
+
+.hidden {
+display: none; /* 初期状態では結果を非表示にする */
+opacity: 0;
+}
+
+#result-section h2 {
+color: var(--danger-color); /* 結果セクションの強調 */
+border-bottom-color: var(--danger-color);
+}
+
+.result-box {
+background-color: var(--card-background);
+border: 1px solid var(--border-color);
+border-left: 5px solid var(--primary-color);
+padding: 15px;
+margin-bottom: 15px;
+border-radius: 5px;
+}
+
+.result-box h3 {
+font-size: 1.2rem;
+color: var(--primary-color);
+margin-bottom: 10px;
+padding-bottom: 5px;
+border-bottom: 1px dashed var(--border-color);
+}
+
+.hazard-details p {
+margin: 5px 0;
+}
+
+/* 震度・津波情報 */
+.hazard-details strong {
+color: var(--danger-color);
+}
+
+/* 地図エリアのコンテナ（app.jsでdisplayを制御） */
+.map-area-container {
+    margin-top: 20px;
+    display: none; /* 初期状態は非表示 */
+}
+
+/* 地図エリア */
+#map {
+height: 300px; /* 地図の高さ */
+width: 100%;
+margin-top: 15px;
+border-radius: 5px;
+border: 1px solid var(--border-color);
+}
+
+/* 備蓄計算サマリー */
+.summary-line {
+display: flex;
+justify-content: space-around;
+padding: 5px 0 10px;
+border-bottom: 1px solid var(--border-color);
+margin-bottom: 15px;
+}
+
+.summary-line p {
+font-weight: bold;
+}
+
+
+/* ======================================================================
+備蓄計算結果の詳細リスト (result.htmlから移行)
+====================================================================== */
+
+.bichiku-category h4 {
+    border-bottom: 2px solid var(--primary-color);
+    padding-bottom: 5px;
+    margin-bottom: 10px;
+    color: var(--primary-color);
+}
+
+/* app.jsのインラインスタイルをクラス化 */
+.bichiku-category .note {
+    font-size: 0.85em; 
+    color: var(--note-color); 
+}
+.bichiku-category .total-amount-box {
+    text-align: right; 
+    padding: 10px 15px 10px 0; 
+    border: 1px solid var(--border-color); 
+    background-color: var(--list-background); 
+    border-radius: 4px; 
+    margin-top: 10px;
+}
+.bichiku-category .total-amount-box strong {
+    color: var(--warning-color); 
+    font-size: 1.2em;
+}
+
+.breakdown-list-container ul {
+    /* 💡 修正: 箇条書き（黒丸）を有効にする */
+    list-style-type: disc; 
+    padding-left: 20px; /* 箇条書きマークを表示するためのパディング */
+    margin: 0;
+}
+
+.breakdown-list-container li {
+    /* 💡 修正: 箇条書きの見た目にするため、背景色やボーダーを調整 */
+    padding: 5px 0;
+    display: flex;
+    flex-direction: column;
+    border-bottom: 1px dotted #ccc;
+    background-color: transparent; /* 背景色を透明に */
+    margin-bottom: 0px; 
+    border-radius: 0;
+    border-left: none;
+}
+
+.breakdown-item-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.required-count {
+    font-size: 1.3em;
+    font-weight: bold;
+    color: var(--warning-color); /* 目立つ色 */
+}
+
+/* 💡 新規追加: リストの末尾に「など」を右寄せで表示するスタイル */
+.list-suffix-right {
+    text-align: right;
+    font-size: 0.9em;
+    color: var(--note-color);
+    padding: 5px 0;
+    margin-top: 5px;
+}
+
+/* 💡 ユーザー要望により修正: 推奨品目リストのヘッダーテキスト */
+.recommended-note {
+    font-size: 1.0em; 
+    color: var(--text-color); 
+    font-weight: bold; /* 少し強調 */
+    text-align: left; 
+    padding: 10px 0 5px 0; /* 上部のスペースを確保 */
+    line-height: 1.6; 
+    margin-top: 15px; /* 上部に少しマージン */
+    /* 以前のカンマ区切りテキストのための特殊な設定を削除 */
+}
+
+/* 💡 新規追加: 枠で囲むコンテナ */
+.recommended-items-container {
+    padding: 15px;
+    border: 1px solid var(--border-color); /* ボーダーで枠を表現 */
+    border-radius: 6px;
+    background-color: var(--list-background); /* 薄い背景色 */
+    margin-bottom: 10px;
+}
+
+/* 💡 修正: 箇条書きリストのスタイル (縦並びに固定) */
+.recommended-items-list {
+    list-style-type: none; /* デフォルトの黒丸を非表示 */
+    padding-left: 0;
+    margin-bottom: 0;
+    /* 💡 修正: グリッドをやめ、ブロック要素として縦に並べる */
+    display: block; 
+    /* grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); */ /* 横並びを無効化 */
+    gap: 8px 15px; /* 縦横の隙間 */
+}
+
+/* 💡 修正: リスト項目のスタイル（「・〇〇」を実現） */
+.recommended-items-list li {
+    font-size: 0.95rem;
+    line-height: 1.4;
+    padding-left: 15px; /* アイコン分のスペース */
+    position: relative;
+    border-bottom: none; /* 既存のボーダーを無効化 */
+    background-color: transparent;
+    margin-bottom: 5px; /* 縦並びなのでマージンを追加 */
+}
+
+.recommended-items-list li::before {
+    content: "・"; /* ユーザー要望の「・」 */
+    position: absolute;
+    left: 0;
+    top: 0;
+    color: var(--primary-color); /* メインカラーで強調 */
+    font-weight: bold;
+}
+
+
+.necessities-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+.necessities-list li {
+    background-color: var(--necessity-background);
+    padding: 10px;
+    margin-bottom: 8px;
+    border-radius: 6px;
+    border-left: 4px solid var(--info-color); /* Infoカラー */
+}
+.necessities-list li > div {
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center;
+}
+.necessities-list li > p {
+    margin-top: 5px; 
+    font-size: 0.8em; 
+    color: var(--note-color);
+}
+.necessities-list .unit-count {
+    font-weight: bold;
+    color: #2980b9; /* 青系の強調色 */
+}
+
+/* ----------------------------------------------------
+// 7. メディアクエリ (デザインの調整)
+// ---------------------------------------------------- */
+/* スマートフォンより大きい画面 (タブレットなど) の調整 */
+@media (min-width: 600px) {
+header h1 {
+font-size: 2rem;
+}
+.card {
+padding: 30px;
+}
+}

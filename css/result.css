@@ -1,0 +1,251 @@
+/* =====================================================================
+// 愛知マイ備蓄ナビ - 結果画面スタイルシート (result.css)
+// ===================================================================== */
+:root {
+    /* base.cssで定義された変数を参照 */
+    --primary-color: #007bff;
+    --border-color: #e9ecef;
+    --danger-color: #dc3545;
+    --warning-color: #d9534f;
+    --card-background: #ffffff;
+    --info-color: #5bc0de;
+    --note-color: #6c757d;
+    --list-background: #f9f9f9;
+    --necessity-background: #f8f9fa;
+    --text-color: #343a40;
+}
+
+
+/* ----------------------------------------------------
+// 6. 結果表示エリア
+// ---------------------------------------------------- */
+#result-section {
+    opacity: 1;
+    transition: opacity 0.5s ease-in-out;
+}
+
+.hidden {
+    display: none; /* 初期状態では結果を非表示にする */
+    opacity: 0;
+}
+
+/* result.htmlでカードの外見を持つ要素の共通スタイル */
+.result-box {
+    background-color: var(--card-background);
+    border: 1px solid var(--border-color);
+    border-left: 5px solid var(--primary-color);
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 5px;
+}
+
+.result-box h3 {
+    font-size: 1.2rem;
+    color: var(--primary-color);
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+    border-bottom: 1px dashed var(--border-color);
+}
+
+/* 被害状況セクション */
+#hazard-info-section h2 {
+    color: var(--danger-color);
+    border-bottom-color: var(--danger-color);
+}
+
+.hazard-details p {
+    margin: 5px 0;
+}
+
+/* 震度・津波情報 */
+.hazard-details strong {
+    color: var(--danger-color);
+}
+
+
+/* 避難所ボタンを横並びにするグループ */
+.button-group {
+    display: flex; /* 子要素を横並びにする */
+    gap: 10px; /* ボタン間のスペース */
+    margin-top: 5px; 
+    margin-bottom: 20px;
+}
+
+/* グループ内のボタンが均等に幅を持つように */
+.button-group .shelter-action-button {
+    flex: 1; /* 均等な幅を確保 */
+}
+
+/* 地図エリアのコンテナ（app.jsでdisplayを制御） */
+.map-area-container {
+    margin-top: 20px;
+    display: none; /* 初期状態は非表示 */
+}
+
+/* 地図エリア */
+#map {
+    height: 300px; /* 地図の高さ */
+    width: 100%;
+    margin-top: 15px;
+    border-radius: 5px;
+    border: 1px solid var(--border-color);
+}
+
+/* 備蓄計算サマリー */
+.summary-line {
+    display: flex;
+    justify-content: space-around;
+    padding: 5px 0 10px;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 15px;
+}
+
+.summary-line p {
+    font-weight: bold;
+}
+
+
+/* ======================================================================
+備蓄計算結果の詳細リスト
+====================================================================== */
+
+.bichiku-category h4 {
+    border-bottom: 2px solid var(--primary-color);
+    padding-bottom: 5px;
+    margin-bottom: 10px;
+    color: var(--primary-color);
+}
+
+/* 詳細リストの注意書き */
+.bichiku-category .note {
+    font-size: 0.85em; 
+    color: var(--note-color); 
+}
+/* 合計量ボックス */
+.bichiku-category .total-amount-box {
+    text-align: right; 
+    padding: 10px 15px 10px 0; 
+    border: 1px solid var(--border-color); 
+    background-color: var(--list-background); 
+    border-radius: 4px; 
+    margin-top: 10px;
+}
+.bichiku-category .total-amount-box strong {
+    color: var(--warning-color); 
+    font-size: 1.2em;
+}
+
+.breakdown-list-container ul {
+    list-style-type: disc; 
+    padding-left: 20px;
+    margin: 0;
+}
+
+.breakdown-list-container li {
+    padding: 5px 0;
+    display: flex;
+    flex-direction: column;
+    border-bottom: 1px dotted #ccc;
+    background-color: transparent;
+    margin-bottom: 0px; 
+    border-radius: 0;
+    border-left: none;
+}
+
+.breakdown-item-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.required-count {
+    font-size: 1.3em;
+    font-weight: bold;
+    color: var(--warning-color);
+}
+
+/* リストの末尾に「など」を右寄せで表示するスタイル */
+.list-suffix-right {
+    text-align: right;
+    font-size: 0.9em;
+    color: var(--note-color);
+    padding: 5px 0;
+    margin-top: 5px;
+}
+
+/* 推奨品目リストのヘッダーテキスト */
+.recommended-note {
+    font-size: 1.0em; 
+    color: var(--text-color); 
+    font-weight: bold;
+    text-align: left; 
+    padding: 10px 0 5px 0;
+    line-height: 1.6; 
+    margin-top: 15px;
+}
+
+/* 枠で囲むコンテナ */
+.recommended-items-container {
+    padding: 15px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background-color: var(--list-background);
+    margin-bottom: 10px;
+}
+
+/* 箇条書きリストのスタイル (縦並びに固定) */
+.recommended-items-list {
+    list-style-type: none;
+    padding-left: 0;
+    margin-bottom: 0;
+    display: block; 
+    gap: 8px 15px;
+}
+
+/* リスト項目のスタイル（「・〇〇」を実現） */
+.recommended-items-list li {
+    font-size: 0.95rem;
+    line-height: 1.4;
+    padding-left: 15px;
+    position: relative;
+    border-bottom: none;
+    background-color: transparent;
+    margin-bottom: 5px;
+}
+
+.recommended-items-list li::before {
+    content: "・";
+    position: absolute;
+    left: 0;
+    top: 0;
+    color: var(--primary-color);
+    font-weight: bold;
+}
+
+/* 計算対象外の必需品リスト */
+.necessities-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+.necessities-list li {
+    background-color: var(--necessity-background);
+    padding: 10px;
+    margin-bottom: 8px;
+    border-radius: 6px;
+    border-left: 4px solid var(--info-color); /* Infoカラー */
+}
+.necessities-list li > div {
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center;
+}
+.necessities-list li > p {
+    margin-top: 5px; 
+    font-size: 0.8em; 
+    color: var(--note-color);
+}
+.necessities-list .unit-count {
+    font-weight: bold;
+    color: #2980b9; /* 青系の強調色 */
+}
