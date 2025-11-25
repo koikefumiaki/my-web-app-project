@@ -163,7 +163,7 @@ function handleHomeSearch() {
         days: durationDays
     }).toString();
 
-    window.location.href = `result.html?${query}`;
+    window.location.href = `/my-web-app-project/result.html?${query}`;
 }
 
 // ----------------------------------------------------
