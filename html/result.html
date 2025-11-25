@@ -57,24 +57,20 @@
         </section>
 
         <section id="shelter-map-container" class="result-box">
-            <h3>その地域の最寄りの避難所を検索</h3>
-            <p>詳細な住所を入力し、ボタンを押すと地図に最寄りの避難所が表示されます。</p>
-
-            <div class="input-group">
-                <label for="detailed-address-result">詳しい住所（町名・番地まで）</label>
-                <input type="text" id="detailed-address-result" value="" placeholder="例: 名駅１丁目１−４">
-                <p class="note">最寄りの避難所を正確に検索します。</p>
-            </div>
+            <h3>最寄りの避難所情報</h3>
+            <p id="nearest-shelter-info-display">
+                検索中です...
+            </p>
 
             <div id="shelter-button-group" class="button-group">
-                <button id="search-shelter-button" class="shelter-action-button">最寄りの避難所を表示</button>
+                <button id="show-map-button" class="shelter-action-button" style="display: none;">地図で確認する</button>
+                
                 <button id="close-shelter-button" class="shelter-action-button" style="display: none;">最寄りの避難所を閉じる</button>
             </div>
-            <div id="map-area" class="map-area-container">
-                <p id="nearest-shelter-info">検索ボタンを押してください...</p>
+            
+            <div id="map-area" class="map-area-container" style="display: none;">
                 <div id="map"></div>
             </div>
-            
         </section>
 
     </main>

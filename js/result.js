@@ -18,6 +18,10 @@ let appData = {};
 let map, geocoder; // Google Mapsオブジェクト
 let googleMapsLoaded = false; // Google Maps APIのロード状態を追跡
 
+// 【変更】ユーザーの入力情報と特定された避難所情報を保持する変数
+let inputParams = {};
+let nearestShelterData = null; // 特定された最寄りの避難所データを保持
+
 // ----------------------------------------------------
 // 2. データの読み込み処理 (home.jsと共通)
 // ----------------------------------------------------
@@ -80,18 +84,29 @@ function initResult() {
     const selectedCity = params.get('city');
     const familySize = parseInt(params.get('size'), 10);
     const durationDays = parseInt(params.get('days'), 10);
+    const address = params.get('addr');
     
-    if (!selectedCity || !familySize || !durationDays) {
-        // エラー通知はカスタムモーダルなどが望ましいが、今回はalertをそのまま使用
+    // グローバル変数に格納
+    inputParams = {
+        city: selectedCity,
+        size: familySize,
+        days: durationDays,
+        addr: address
+    };
+    
+    if (!selectedCity || !familySize || !durationDays || !address) {
         alert("必要な入力情報がありません。ホーム画面に戻ります。");
         window.location.href = 'home.html';
         return;
     }
 
     // 画面サマリー情報の表示
-    document.getElementById('target-full-address').textContent = `愛知県 ${selectedCity}`; 
+    document.getElementById('target-full-address').textContent = `愛知県 ${selectedCity} ${address}`;
     document.getElementById('summary-family-size').textContent = familySize;
     document.getElementById('summary-duration-days').textContent = durationDays;
+    
+    // ★★★ 修正: 避難所名表示エリアの初期メッセージを設定 ★★★
+    document.getElementById('nearest-shelter-info-display').textContent = `最寄りの避難所を検索中...`;
 
     loadAllData().then(dataLoaded => {
         if (dataLoaded) {
@@ -100,14 +115,16 @@ function initResult() {
             displayGeneralNecessities();
             displayHazardInfoOnly(selectedCity); 
             
-            // 避難所検索ボタンのイベントリスナー設定
-            const searchShelterButton = document.getElementById('search-shelter-button');
+            // ★★★ 修正: ページロード時に避難所検索ロジックを開始する ★★★
+            const fullAddress = `愛知県${inputParams.city}${inputParams.addr}`;
+            loadGoogleMapsAPI(fullAddress); 
+            
+            // 地図表示ボタンのイベントリスナー設定
+            const showMapButton = document.getElementById('show-map-button');
             const closeShelterButton = document.getElementById('close-shelter-button');
             
-            if (searchShelterButton) {
-                searchShelterButton.addEventListener('click', () => {
-                    handleShelterSearch(selectedCity);
-                });
+            if (showMapButton) {
+                showMapButton.addEventListener('click', handleMapDisplay); 
             }
             if (closeShelterButton) {
                 closeShelterButton.addEventListener('click', closeShelterMap);
@@ -119,18 +136,19 @@ function initResult() {
     });
 }
 
+
 // ----------------------------------------------------
 // 4. Google Maps & 避難所検索ロジック
 // ----------------------------------------------------
 
 /**
- * Google Maps APIを動的にロードし、地図を表示する
+ * Google Maps APIを動的にロードし、地図の初期化とGeocodingを開始する。
  * @param {string} fullAddress - Geocodingに使用する住所
  */
 function loadGoogleMapsAPI(fullAddress) {
     if (googleMapsLoaded) {
         // すでにロード済みの場合は、即座にジオコーディングを実行
-        geocodeAndDisplayShelter(fullAddress);
+        geocodeAndDisplayShelter(fullAddress); 
         return;
     }
 
@@ -151,7 +169,7 @@ window.initMapAndSearch = function() {
     googleMapsLoaded = true;
     geocoder = new google.maps.Geocoder();
     
-    // 地図の初期化 (中心は愛知県庁付近)
+    // 地図の初期化 (コンテナが非表示でもオブジェクトは作成される)
     map = new google.maps.Map(document.getElementById('map'), {
         center: { lat: 35.1802, lng: 136.9051 }, 
         zoom: 10,
@@ -159,100 +177,49 @@ window.initMapAndSearch = function() {
 
     const fullAddress = window.fullAddressForMap; 
     
-    // APIロード完了後、すぐに避難所検索を開始
+    // APIロード完了後、すぐに避難所検索を開始し、避難所名を特定する
     if (fullAddress) {
         geocodeAndDisplayShelter(fullAddress); 
     }
 }
 
 /**
- * 避難所検索ボタンクリック時のメイン処理
- * @param {string} selectedCity - home.htmlで選択された市町村
- */
-function handleShelterSearch(selectedCity) {
-    const detailedAddress = document.getElementById('detailed-address-result').value;
-    const mapArea = document.getElementById('map-area');
-    const nearestShelterInfo = document.getElementById('nearest-shelter-info');
-    const searchButton = document.getElementById('search-shelter-button');
-    const closeButton = document.getElementById('close-shelter-button');
-
-
-    if (!detailedAddress) {
-        // エラー通知はカスタムモーダルなどが望ましいが、今回はalertをそのまま使用
-        alert("詳細な住所を入力してください。");
-        return;
-    }
-
-    // 検索エリアを表示に切り替える
-    mapArea.style.display = 'block';
-    nearestShelterInfo.textContent = '地図機能を読み込み中...';
-    
-    // ボタンの表示切替
-    searchButton.style.display = 'none';
-    closeButton.style.display = 'block';
-
-    // Geocoding用に「愛知県」と市町村、詳細住所を結合
-    const fullAddress = `愛知県${selectedCity}${detailedAddress}`; 
-
-    // Google Maps APIのロードと検索を開始
-    loadGoogleMapsAPI(fullAddress); 
-}
-
-/**
- * 避難所マップを非表示にする
- */
-function closeShelterMap() {
-    const mapArea = document.getElementById('map-area');
-    const nearestShelterInfo = document.getElementById('nearest-shelter-info');
-    const searchButton = document.getElementById('search-shelter-button');
-    const closeButton = document.getElementById('close-shelter-button');
-
-    // 地図エリアを非表示に
-    mapArea.style.display = 'none';
-    nearestShelterInfo.textContent = '検索ボタンを押してください...';
-    
-    // ボタンの表示切替
-    searchButton.style.display = 'block';
-    closeButton.style.display = 'none';
-}
-
-/**
  * Geocoding（住所→座標変換）と避難所検索を実行する
  */
 function geocodeAndDisplayShelter(fullAddress) {
-    document.getElementById('nearest-shelter-info').textContent = '住所を座標に変換中...';
+    document.getElementById('nearest-shelter-info-display').textContent = '住所を座標に変換中...';
 
     geocoder.geocode({ 'address': fullAddress }, (results, status) => {
         if (status === 'OK' && results[0]) {
             const userLatLng = results[0].geometry.location;
             
-            // Geocodingが成功したら避難所を検索・表示
+            // Geocodingが成功したら避難所を検索し、結果を画面に反映
             findAndDisplayNearestShelter(userLatLng);
         } else {
             console.error('Geocodingに失敗しました: ' + status);
-            document.getElementById('nearest-shelter-info').textContent = `住所の特定に失敗しました（ステータス: ${status}）。住所を確認してください。`;
+            document.getElementById('nearest-shelter-info-display').textContent = `住所の特定に失敗しました（ステータス: ${status}）。住所を確認してください。`;
+            document.getElementById('show-map-button').style.display = 'none'; // 失敗時はボタンも非表示
         }
     });
 }
 
 /**
- * 最寄りの避難所を計算し、地図と情報欄に表示する
+ * 最寄りの避難所を計算し、情報欄に表示する。
+ * 地図の表示は、地図ボタンが押されたときのみ行う。
  */
 function findAndDisplayNearestShelter(centerLatLng) {
-    document.getElementById('nearest-shelter-info').textContent = '最寄りの避難所を検索中...';
+    document.getElementById('nearest-shelter-info-display').textContent = '最寄りの避難所を検索中...'; 
 
     let nearestShelter = null;
     let minDistance = Infinity;
+    const isMapVisible = document.getElementById('map-area').style.display !== 'none';
 
     if (google.maps.geometry && google.maps.geometry.spherical && appData.shelter.length > 0) {
         
         appData.shelter.forEach(shelter => {
-            if (typeof shelter.lat !== 'number' || typeof shelter.lng !== 'number') {
-                return; 
-            }
+            if (typeof shelter.lat !== 'number' || typeof shelter.lng !== 'number') return; 
 
             const shelterLatLng = new google.maps.LatLng(shelter.lat, shelter.lng);
-            // 2点間の距離をメートル単位で計算
             const distance = google.maps.geometry.spherical.computeDistanceBetween(centerLatLng, shelterLatLng); 
             
             if (distance < minDistance) {
@@ -263,37 +230,106 @@ function findAndDisplayNearestShelter(centerLatLng) {
     }
 
     if (nearestShelter) {
-        const shelterLatLng = new google.maps.LatLng(nearestShelter.lat, nearestShelter.lng);
         const distanceKm = (minDistance / 1000).toFixed(2);
         
-        document.getElementById('nearest-shelter-info').innerHTML = `
+        // ★★★ 避難所データをグローバルに保存 (地図表示時に使用) ★★★
+        nearestShelterData = {
+            ...nearestShelter,
+            centerLatLng: centerLatLng, 
+            distanceKm: distanceKm
+        };
+        
+        // ★★★ 避難所名表示エリアを更新 (ページロード時に実行される) ★★★
+        document.getElementById('nearest-shelter-info-display').innerHTML = `
             最寄りの避難所: <strong>${nearestShelter.name}</strong> (約 ${distanceKm} km)
         `;
+        
+        // ★★★ 地図ボタンを表示 ★★★
+        document.getElementById('show-map-button').style.display = 'block';
 
-        // 地図を中心とズームレベルを更新
-        map.setCenter(centerLatLng);
-        map.setZoom(15); 
-        
-        // 既存のマーカーをクリアする場合は処理が必要ですが、ここでは新規に作成
-        
-        // ユーザーマーカー（入力住所）
-        new google.maps.Marker({
-            position: centerLatLng,
-            map: map,
-            title: '入力された住所',
-            icon: { url: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png' } // 青いピン
-        });
-        
-        // 避難所マーカー
-        new google.maps.Marker({
-            position: shelterLatLng,
-            map: map,
-            title: nearestShelter.name,
-            icon: { url: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png' } // 赤いピン
-        });
+        // 地図が表示状態なら、マーカーなどを描画 (ボタンクリックで表示された場合)
+        if (isMapVisible && map) {
+             renderShelterMap(nearestShelterData);
+        }
+
     } else {
-        document.getElementById('nearest-shelter-info').textContent = "最寄りの避難所が見つかりませんでした。";
+        document.getElementById('nearest-shelter-info-display').textContent = "最寄りの避難所が見つかりませんでした。";
+        document.getElementById('show-map-button').style.display = 'none';
     }
+}
+
+/**
+ * 地図描画専用のヘルパー関数 (新規追加)
+ */
+function renderShelterMap(data) {
+    if (!map || !data || !data.centerLatLng) return;
+
+    // マーカーをリセットする処理をここに含めるのが望ましいですが、ここでは単純に新規作成
+    
+    // マップの表示を更新
+    map.setCenter(data.centerLatLng);
+    map.setZoom(15); 
+    
+    // ユーザーマーカー（入力住所）
+    new google.maps.Marker({
+        position: data.centerLatLng,
+        map: map,
+        title: '入力された住所',
+        icon: { url: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png' } // 青いピン
+    });
+    
+    // 避難所マーカー
+    new google.maps.Marker({
+        position: new google.maps.LatLng(data.lat, data.lng),
+        map: map,
+        title: data.name,
+        icon: { url: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png' } // 赤いピン
+    });
+}
+
+/**
+ * 地図表示ボタンクリック時のメイン処理
+ */
+function handleMapDisplay() {
+    const mapArea = document.getElementById('map-area');
+    const showMapButton = document.getElementById('show-map-button');
+    const closeButton = document.getElementById('close-shelter-button');
+    const shelterInfoEl = document.getElementById('nearest-shelter-info-display');
+
+
+    if (!nearestShelterData) {
+         shelterInfoEl.textContent = 'エラー: 避難所情報が特定できていません。ページを再読み込みしてください。';
+         return;
+    }
+
+    // 検索エリアを表示に切り替える
+    mapArea.style.display = 'block';
+    
+    // ボタンの表示切替
+    showMapButton.style.display = 'none';
+    closeButton.style.display = 'block';
+
+    // 地図が隠れた状態で初期化された場合、リサイズイベントをトリガーして地図を正しく描画
+    if (map) {
+        google.maps.event.trigger(map, 'resize');
+        renderShelterMap(nearestShelterData);
+    }
+}
+
+/**
+ * 避難所マップを非表示にする
+ */
+function closeShelterMap() {
+    const mapArea = document.getElementById('map-area');
+    const showMapButton = document.getElementById('show-map-button');
+    const closeButton = document.getElementById('close-shelter-button');
+
+    // 地図エリアを非表示に
+    mapArea.style.display = 'none';
+    
+    // ボタンの表示切替
+    showMapButton.style.display = 'block';
+    closeButton.style.display = 'none';
 }
 
 

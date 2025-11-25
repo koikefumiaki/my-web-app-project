@@ -16,6 +16,9 @@ const DATA_PATHS = {
 };
 let appData = {};
 
+// ★★★ 追加: LocalStorageキーの定義 ★★★
+const STORAGE_KEY = 'aichiMyBichikuProfile';
+
 // ----------------------------------------------------
 // 2. データの読み込み処理 (result.jsと共通)
 // ----------------------------------------------------
@@ -79,6 +82,8 @@ function initHome() {
     loadAllData().then(dataLoaded => {
         if (dataLoaded) {
             populateCitySelect();
+            // ★★★ 追加: 保存されたプロフィールをロードしてフォームに適用 ★★★
+            loadSavedProfile(); 
         } else {
             // データロード失敗時は検索ボタンを無効化
             searchButton.disabled = true;
@@ -103,23 +108,57 @@ function populateCitySelect() {
     }
 }
 
+// ★★★ 追加: LocalStorageから保存されたデータをロードし、フォームに反映する関数 ★★★
+function loadSavedProfile() {
+    const savedData = localStorage.getItem(STORAGE_KEY);
+    if (savedData) {
+        try {
+            const profile = JSON.parse(savedData);
+            
+            // フォーム要素に値を設定
+            document.getElementById('city-select').value = profile.city || '';
+            document.getElementById('address-input').value = profile.addr || '';
+            document.getElementById('family-size').value = profile.size || 1;
+            document.getElementById('duration-days').value = profile.days || 7;
+
+            console.log("Saved profile loaded and applied.");
+        } catch (e) {
+            console.error("Error parsing saved profile. Clearing corrupted data.", e);
+            localStorage.removeItem(STORAGE_KEY); 
+        }
+    }
+}
+
+
 /**
  * 検索ボタンクリック時の処理。入力値を取得し、result.htmlへ遷移する。
  */
 function handleHomeSearch() {
     const selectedCity = document.getElementById('city-select').value;
-    const familySize = document.getElementById('family-size').value;
-    const durationDays = document.getElementById('duration-days').value;
+    const addressInput = document.getElementById('address-input').value;
+    const familySize = parseInt(document.getElementById('family-size').value, 10); // 数値として取得
+    const durationDays = parseInt(document.getElementById('duration-days').value, 10); // 数値として取得
 
-    if (!selectedCity || familySize <= 0 || durationDays <= 0) {
+    if (!selectedCity || !addressInput || familySize <= 0 || durationDays <= 0) {
         // エラー通知はカスタムモーダルなどが望ましいが、今回はalertをそのまま使用
-        alert("市町村、人数、日数を正しく入力してください。");
+        alert("市町村、詳細住所、人数、日数を正しく入力してください。");
         return;
     }
+    
+    // ★★★ 修正: 成功した入力データをLocal Storageに保存 ★★★
+    const profile = {
+        city: selectedCity,
+        addr: addressInput, 
+        size: familySize,
+        days: durationDays
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
+
 
     // クエリパラメータを構築して画面遷移
     const query = new URLSearchParams({
         city: selectedCity,
+        addr: addressInput,
         size: familySize,
         days: durationDays
     }).toString();
