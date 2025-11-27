@@ -291,6 +291,18 @@
     font-weight: bold;
 }
 
+/* result.css の末尾付近に追記 */
+
+/* ★★★ 新規追記: 大項目（例: 野菜缶詰）の後の小項目（たけのこなど）をインデントする ★★★ */
+.recommended-sub-item {
+    display: block; /* 常に新しい行から始める */
+    padding-left: 20px; /* 親の <li> からさらに字下げ */
+    text-indent: -0.5em; /* 括弧内の最初の行をわずかに戻す（お好みで調整） */
+    line-height: 1.4;
+    
+    /* 括弧内の項目を「・」で表現する場合、さらに調整が必要ですが、ここではテキストとして改行 */
+}
+
 /* 計算対象外の必需品リスト */
 .necessities-list {
     list-style-type: none;
