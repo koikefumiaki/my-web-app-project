@@ -136,18 +136,15 @@
 }
 
 .breakdown-list-container ul {
-    list-style-type: none; /* disc から none に変更 */
-    padding-left: 0; /* paddingをリセット */
+    list-style-type: disc; 
+    padding-left: 20px;
     margin: 0;
 }
 
 .breakdown-list-container li {
-    padding: 8px 0; /* paddingを調整 */
-    
-    /* ★★★ 修正: 不要なFlexbox設定を削除し、ブロック要素に戻す ★★★ */
-    display: block; 
-    /* flex-direction: column; を削除 */
-    
+    padding: 5px 0;
+    display: flex;
+    flex-direction: column;
     border-bottom: 1px dotted #ccc;
     background-color: transparent;
     margin-bottom: 0px; 
@@ -156,30 +153,15 @@
 }
 
 .breakdown-item-line {
-    display: flex; /* 横並びはここで制御 */
+    display: flex;
     justify-content: space-between;
-    align-items: flex-start; /* ★★★ 修正: 縦の配置を上揃えに ★★★ */
+    align-items: center;
 }
-
-/* ★★★ 新規追記: 品目名に見切れ解消のCSSを適用 ★★★ */
-.breakdown-item-line .item-name {
-    flex-grow: 1; /* 品目名にスペースを最大限与える */
-    margin-right: 10px; /* 個数との間隔 */
-    
-    /* 強制改行ルール: これが長い括弧内の文字列を折り返します */
-    word-break: break-word; 
-    overflow-wrap: break-word; 
-    white-space: normal; 
-}
-
 
 .required-count {
-    /* required-countのサイズを調整し、item-nameとのバランスを取る */
-    flex-shrink: 0;
-    white-space: nowrap; 
-    font-size: 1.1em; /* 1.3emから調整 */
+    font-size: 1.3em;
     font-weight: bold;
-    color: var(--primary-color); /* warning-color から primary-colorに調整（目立たせすぎないように） */
+    color: var(--warning-color);
 }
 
 /* リストの末尾に「など」を右寄せで表示するスタイル */
@@ -193,17 +175,13 @@
 
 /* 推奨品目リストのヘッダーテキスト */
 .recommended-note {
-    font-size: 0.9em; /* 1.0emから調整 */
-    color: var(--note-color); /* text-color から note-colorに調整 */
-    font-weight: normal; /* bold から normal に調整 */
+    font-size: 1.0em; 
+    color: var(--text-color); 
+    font-weight: bold;
     text-align: left; 
-    padding: 5px 0; /* paddingを調整 */
-    line-height: 1.5; 
-    margin-top: 5px; /* margin-topを調整 */
-    
-    /* ★★★ 追記: 長い注釈も改行できるようにする ★★★ */
-    word-break: break-word; 
-    overflow-wrap: break-word;
+    padding: 10px 0 5px 0;
+    line-height: 1.6; 
+    margin-top: 15px;
 }
 
 /* 枠で囲むコンテナ */
