@@ -136,18 +136,15 @@
 }
 
 .breakdown-list-container ul {
-    list-style-type: none; /* disc から none に変更 */
-    padding-left: 0;
+    list-style-type: disc; 
+    padding-left: 20px;
     margin: 0;
 }
 
 .breakdown-list-container li {
-    padding: 8px 0; /* paddingを調整 */
-    
-    /* ★★★ 修正1: 不要なFlexbox設定を削除し、ブロック要素に戻す ★★★ */
-    display: block; 
-    /* flex-direction: column; を削除 */
-    
+    padding: 5px 0;
+    display: flex;
+    flex-direction: column;
     border-bottom: 1px dotted #ccc;
     background-color: transparent;
     margin-bottom: 0px; 
@@ -158,27 +155,13 @@
 .breakdown-item-line {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start; /* ★★★ 修正2: 縦の配置を上揃えに ★★★ */
+    align-items: center;
 }
-
-/* ★★★ 新規追記: 品目名に見切れ解消のCSSを適用 ★★★ */
-.breakdown-item-line .item-name {
-    flex-grow: 1; /* 品目名にスペースを最大限与える */
-    margin-right: 10px; /* 個数との間隔 */
-    
-    /* 強制改行ルール: これが長い括弧内の文字列を折り返します */
-    word-break: break-word; 
-    overflow-wrap: break-word; 
-    white-space: normal; 
-}
-
 
 .required-count {
-    flex-shrink: 0;
-    white-space: nowrap; 
-    font-size: 1.1em; /* 1.3emから調整 */
+    font-size: 1.3em;
     font-weight: bold;
-    color: var(--primary-color); /* warning-color から primary-colorに調整 */
+    color: var(--warning-color);
 }
 
 /* リストの末尾に「など」を右寄せで表示するスタイル */
@@ -190,70 +173,18 @@
     margin-top: 5px;
 }
 
-/* ★★★ 修正3: recommended-noteのスタイルを調整し、子要素のリストを表示できるようにする ★★★ */
+/* 推奨品目リストのヘッダーテキスト */
 .recommended-note {
-    font-size: 0.9em; /* 1.0emから調整 */
-    color: var(--note-color); 
-    font-weight: normal; /* bold から normal に調整 */
+    font-size: 1.0em; 
+    color: var(--text-color); 
+    font-weight: bold;
     text-align: left; 
-    padding: 5px 0 5px 10px; /* 左側に少しインデント */
-    margin-top: 5px; /* margin-topを調整 */
-    line-height: 1.5; 
-    
-    word-break: break-word; 
-    overflow-wrap: break-word;
+    padding: 10px 0 5px 0;
+    line-height: 1.6; 
+    margin-top: 15px;
 }
 
-/* ★★★ 追記: result.jsで新しく生成された推奨品リストのスタイル ★★★ */
-
-/* 「例:」ヘッダーのスタイル */
-.recommended-product-header {
-    display: block;
-    font-weight: bold;
-    color: var(--text-color);
-    margin-bottom: 5px;
-    margin-top: 5px;
-    font-size: 1.0em;
-}
-
-/* 実際のリストのスタイル（ul） */
-.recommended-product-list {
-    list-style: none; /* デフォルトの黒丸を削除 */
-    padding-left: 10px; /* 左側のインデント */
-    margin: 0;
-}
-
-/* 実際のリストの項目（li） */
-.recommended-product-list li {
-    font-size: 0.95em;
-    line-height: 1.5;
-    padding-left: 10px;
-    position: relative;
-    /* 各リスト項目の改行設定 */
-    word-break: break-word; 
-    overflow-wrap: break-word; 
-    white-space: normal;
-    
-    /* breakdown-list-container li から継承された不要なスタイルを上書き */
-    border: none !important;
-    padding-top: 2px;
-    padding-bottom: 2px;
-    display: block;
-}
-
-/* 箇条書きのドットをカスタムCSSで表現 */
-.recommended-product-list li::before {
-    content: "・";
-    position: absolute;
-    left: 0;
-    top: 0;
-    color: var(--primary-color);
-    font-weight: bold;
-}
-/* ---------------------------------------------------------------------- */
-
-
-/* 枠で囲むコンテナ (ここはそのまま維持) */
+/* 枠で囲むコンテナ */
 .recommended-items-container {
     padding: 15px;
     border: 1px solid var(--border-color);
@@ -289,18 +220,6 @@
     top: 0;
     color: var(--primary-color);
     font-weight: bold;
-}
-
-/* result.css の末尾付近に追記 */
-
-/* ★★★ 新規追記: 大項目（例: 野菜缶詰）の後の小項目（たけのこなど）をインデントする ★★★ */
-.recommended-sub-item {
-    display: block; /* 常に新しい行から始める */
-    padding-left: 20px; /* 親の <li> からさらに字下げ */
-    text-indent: -0.5em; /* 括弧内の最初の行をわずかに戻す（お好みで調整） */
-    line-height: 1.4;
-    
-    /* 括弧内の項目を「・」で表現する場合、さらに調整が必要ですが、ここではテキストとして改行 */
 }
 
 /* 計算対象外の必需品リスト */
