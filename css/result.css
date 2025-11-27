@@ -178,7 +178,7 @@
     white-space: nowrap; 
     font-size: 1.1em; /* 1.3emから調整 */
     font-weight: bold;
-    color: var(--warning-color); /* warning-color から primary-colorに調整 */
+    color: var(--primary-color); /* warning-color から primary-colorに調整 */
 }
 
 /* リストの末尾に「など」を右寄せで表示するスタイル */
