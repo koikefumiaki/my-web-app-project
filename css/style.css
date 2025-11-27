@@ -269,6 +269,20 @@ margin-top: 5px;
     flex: 1; /* 均等な幅を確保 */
 }
 
+/* 品目名や注釈を含む要素に対して適用 */
+.breakdown-list-item, 
+.recommended-note, 
+.list-suffix-right, 
+.item-name {
+    /* 欧米語の長い単語を強制的に途中で改行させる */
+    word-break: break-word; 
+    
+    /* 中国語や日本語のような単語間にスペースがない言語の折り返しを制御 */
+    word-wrap: break-word; /* または overflow-wrap: break-word; */
+    
+    /* 必須ではありませんが、改行の挙動を標準に保つ */
+    white-space: normal !important; 
+}
 
 /* ----------------------------------------------------
 // 6. 結果表示エリア

@@ -136,15 +136,18 @@
 }
 
 .breakdown-list-container ul {
-    list-style-type: disc; 
-    padding-left: 20px;
+    list-style-type: none; /* disc から none に変更 */
+    padding-left: 0; /* paddingをリセット */
     margin: 0;
 }
 
 .breakdown-list-container li {
-    padding: 5px 0;
-    display: flex;
-    flex-direction: column;
+    padding: 8px 0; /* paddingを調整 */
+    
+    /* ★★★ 修正: 不要なFlexbox設定を削除し、ブロック要素に戻す ★★★ */
+    display: block; 
+    /* flex-direction: column; を削除 */
+    
     border-bottom: 1px dotted #ccc;
     background-color: transparent;
     margin-bottom: 0px; 
@@ -153,15 +156,30 @@
 }
 
 .breakdown-item-line {
-    display: flex;
+    display: flex; /* 横並びはここで制御 */
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start; /* ★★★ 修正: 縦の配置を上揃えに ★★★ */
 }
 
+/* ★★★ 新規追記: 品目名に見切れ解消のCSSを適用 ★★★ */
+.breakdown-item-line .item-name {
+    flex-grow: 1; /* 品目名にスペースを最大限与える */
+    margin-right: 10px; /* 個数との間隔 */
+    
+    /* 強制改行ルール: これが長い括弧内の文字列を折り返します */
+    word-break: break-word; 
+    overflow-wrap: break-word; 
+    white-space: normal; 
+}
+
+
 .required-count {
-    font-size: 1.3em;
+    /* required-countのサイズを調整し、item-nameとのバランスを取る */
+    flex-shrink: 0;
+    white-space: nowrap; 
+    font-size: 1.1em; /* 1.3emから調整 */
     font-weight: bold;
-    color: var(--warning-color);
+    color: var(--primary-color); /* warning-color から primary-colorに調整（目立たせすぎないように） */
 }
 
 /* リストの末尾に「など」を右寄せで表示するスタイル */
@@ -175,13 +193,17 @@
 
 /* 推奨品目リストのヘッダーテキスト */
 .recommended-note {
-    font-size: 1.0em; 
-    color: var(--text-color); 
-    font-weight: bold;
+    font-size: 0.9em; /* 1.0emから調整 */
+    color: var(--note-color); /* text-color から note-colorに調整 */
+    font-weight: normal; /* bold から normal に調整 */
     text-align: left; 
-    padding: 10px 0 5px 0;
-    line-height: 1.6; 
-    margin-top: 15px;
+    padding: 5px 0; /* paddingを調整 */
+    line-height: 1.5; 
+    margin-top: 5px; /* margin-topを調整 */
+    
+    /* ★★★ 追記: 長い注釈も改行できるようにする ★★★ */
+    word-break: break-word; 
+    overflow-wrap: break-word;
 }
 
 /* 枠で囲むコンテナ */
