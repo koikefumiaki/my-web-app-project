@@ -379,25 +379,22 @@ function displayHazardInfoOnly(selectedCity) {
 // ★★★ 新規追加: 推奨品目の文字列をHTMLリストに変換するヘルパー関数 ★★★
 // ----------------------------------------------------
 
-/**
- * JSON内の '例 <br> ・〇〇 <br> ・〇〇' 形式の文字列をCSSで制御可能なHTMLリストに変換する。
- * @param {string} productString - JSONから取得した推奨品リストの文字列
- * @returns {string} 変換されたHTML文字列 (<p>例:</p><ul><li>...</li></ul>)
- */
-// result.js の formatRecommendedProduct 関数 (修正案)
+// result.js の formatRecommendedProduct 関数 (修正後)
 
 /**
  * JSON内の '例 ・〇〇・〇〇' 形式の文字列をHTMLリストに変換する。
- * 改行マーク ":<br>" を認識し、リスト内に改行を挿入する。
+ * ( ) で囲まれた部分を検出し、自動で改行とインデントを適用する。
+ * @param {string} productString - JSONから取得した推奨品リストの文字列
+ * @returns {string} 変換されたHTML文字列
  */
 function formatRecommendedProduct(productString) {
     if (!productString || typeof productString !== 'string') return '';
     
-    // "例 " をヘッダーとして抽出
+    // 1. "例 " をヘッダーとして抽出
     let cleanedString = productString.replace(/例\s*/, '例:');
     
-    // 区切り文字 '|' で分割（各リスト項目）
-    cleanedString = cleanedString.replace(/\s・\s*/g, '|'); // 各リスト項目を '|' で区切る
+    // 2. 各リスト項目を '|' で分割（半角スペースと「・」で区切る）
+    cleanedString = cleanedString.replace(/\s・\s*/g, '|'); 
     
     const parts = cleanedString.split('|');
     const header = parts[0].trim();
@@ -414,13 +411,23 @@ function formatRecommendedProduct(productString) {
         items.forEach(item => {
             const trimmedItem = item.trim();
             if (trimmedItem) {
-                // ★★★ ここが修正の核心 ★★★
-                // ":<br>" を改行とインデントを伴うHTMLに置換
-                const formattedItem = trimmedItem.replace(/:\s*<br>\s*/g, `<br><span class="recommended-sub-item">`);
+                let formattedItem = trimmedItem;
+
+                // ★★★ 修正の核心: 正規表現で括弧 () 内の文字列を検出・整形 ★★★
+                // 正規表現: (〇〇) のパターンを見つける
+                formattedItem = formattedItem.replace(
+                    /(\(|\（)([^)]+)(\)|\）)/g, // 全角・半角の括弧に対応
+                    (match, openBracket, content, closeBracket) => {
+                        // 括弧内の内容 (content) を改行用のHTMLで再構築
+                        
+                        // (たけのこ・トマト水煮・...) を
+                        // <br><span class="recommended-sub-item">（たけのこ・トマト水煮・...）</span> に変換する
+                        return `<br><span class="recommended-sub-item">${openBracket}${content}${closeBracket}</span>`;
+                    }
+                );
                 
-                // <li> タグを閉じ、リストアイテムの「・」をカスタムCSSに任せるため、項目を生成
-                // 最後の <span> を閉じるために、ここで </span> を追加
-                html += `<li>${formattedItem}</span></li>`; 
+                // <li> タグを生成
+                html += `<li>${formattedItem}</li>`; 
             }
         });
         html += '</ul>';

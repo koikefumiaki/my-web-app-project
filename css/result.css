@@ -109,6 +109,17 @@
 備蓄計算結果の詳細リスト
 ====================================================================== */
 
+/* result.css の末尾付近に追記 */
+
+/* ★★★ 新規追記: 括弧内の文字列をインデントする ★★★ */
+.recommended-sub-item {
+    display: block; /* 常に新しい行から始める */
+    padding-left: 15px; /* 親の <li> の箇条書きドットに合わせて調整 */
+    line-height: 1.4;
+    word-break: break-word; 
+    overflow-wrap: break-word;
+}
+
 .bichiku-category h4 {
     border-bottom: 2px solid var(--primary-color);
     padding-bottom: 5px;
