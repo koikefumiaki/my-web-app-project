@@ -379,7 +379,11 @@ function displayHazardInfoOnly(selectedCity) {
 // ★★★ 新規追加: 推奨品目の文字列をHTMLリストに変換するヘルパー関数 ★★★
 // ----------------------------------------------------
 
-
+/**
+ * JSON内の '例 <br> ・〇〇 <br> ・〇〇' 形式の文字列をCSSで制御可能なHTMLリストに変換する。
+ * @param {string} productString - JSONから取得した推奨品リストの文字列
+ * @returns {string} 変換されたHTML文字列 (<p>例:</p><ul><li>...</li></ul>)
+ */
 // result.js の formatRecommendedProduct 関数 (修正案)
 
 /**
