@@ -375,6 +375,56 @@ function displayHazardInfoOnly(selectedCity) {
     }
 }
 
+// ----------------------------------------------------
+// ★★★ 新規追加: 推奨品目の文字列をHTMLリストに変換するヘルパー関数 ★★★
+// ----------------------------------------------------
+
+/**
+ * JSON内の '例 <br> ・〇〇 <br> ・〇〇' 形式の文字列をCSSで制御可能なHTMLリストに変換する。
+ * @param {string} productString - JSONから取得した推奨品リストの文字列
+ * @returns {string} 変換されたHTML文字列 (<p>例:</p><ul><li>...</li></ul>)
+ */
+function formatRecommendedProduct(productString) {
+    if (!productString || typeof productString !== 'string') return '';
+    
+    // 1. "例 <br>" を '例:' + 区切り文字に変更
+    let cleanedString = productString.replace(/例 <br>\s*/, '例: ');
+    
+    // 2. "<br> ・" を区切り文字 '|' に変更
+    cleanedString = cleanedString.replace(/ <br> ・\s*/g, '|');
+    
+    // 3. | で分割し、リスト要素を生成
+    const parts = cleanedString.split('|');
+    
+    // 最初の要素（例: 例: レトルトご飯）をヘッダーとして抽出
+    const header = parts[0].trim();
+    const items = parts.slice(1);
+    
+    let html = '';
+
+    // ヘッダーを表示
+    if (header) {
+        html += `<span class="recommended-product-header">${header}</span>`;
+    }
+    
+    // リストアイテムを生成
+    if (items.length > 0 && items.some(item => item.trim() !== '')) {
+        html += '<ul class="recommended-product-list">';
+        items.forEach(item => {
+            const trimmedItem = item.trim();
+            if (trimmedItem) {
+                html += `<li>${trimmedItem}</li>`;
+            }
+        });
+        html += '</ul>';
+    }
+    
+    return html;
+}
+
+// ----------------------------------------------------
+// 5. 備蓄計算ロジック
+// ----------------------------------------------------
 
 /**
  * 備蓄品の詳細計算と表示を行う
@@ -409,7 +459,10 @@ function calculateAndDisplaySupply(familySize, durationDays) {
             item.breakdown_items.forEach(breakdownItem => {
                 let requiredCount = 0;
                 let unitLabel = '';
-                const note = breakdownItem.recommended_product || breakdownItem.note_jp || '';
+                
+                // ★★★ 修正: recommended_product を formatRecommendedProduct 関数で処理する ★★★
+                // note_jp もあれば一緒に渡すことを考慮
+                const recommendedHtml = formatRecommendedProduct(breakdownItem.recommended_product || breakdownItem.note_jp || '');
                 
                 if (item.item_en === 'water' && breakdownItem.volume_l) {
                     // 水の計算: 総量L数 × 割合 / 標準容量L (小数点以下切り上げ)
@@ -428,7 +481,7 @@ function calculateAndDisplaySupply(familySize, durationDays) {
                                 <span class="item-name">${breakdownItem.item_name_jp}</span>
                                 <span class="required-count">${requiredCount.toLocaleString()} ${unitLabel}</span>
                             </div>
-                            <p class="recommended-note">${note}</p>
+                            <div class="recommended-note">${recommendedHtml}</div> 
                         </li>
                     `;
                 }
