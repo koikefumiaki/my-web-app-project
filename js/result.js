@@ -384,43 +384,36 @@ function displayHazardInfoOnly(selectedCity) {
  * @param {string} productString - JSONから取得した推奨品リストの文字列
  * @returns {string} 変換されたHTML文字列 (<p>例:</p><ul><li>...</li></ul>)
  */
-// result.js の formatRecommendedProduct 関数 (修正案)
-
-/**
- * JSON内の '例 ・〇〇・〇〇' 形式の文字列をHTMLリストに変換する。
- * 改行マーク ":<br>" を認識し、リスト内に改行を挿入する。
- */
 function formatRecommendedProduct(productString) {
     if (!productString || typeof productString !== 'string') return '';
     
-    // "例 " をヘッダーとして抽出
-    let cleanedString = productString.replace(/例\s*/, '例:');
+    // 1. "例 <br>" を '例:' + 区切り文字に変更
+    let cleanedString = productString.replace(/例 <br>\s*/, '例: ');
     
-    // 区切り文字 '|' で分割（各リスト項目）
-    cleanedString = cleanedString.replace(/\s・\s*/g, '|'); // 各リスト項目を '|' で区切る
+    // 2. "<br> ・" を区切り文字 '|' に変更
+    cleanedString = cleanedString.replace(/ <br> ・\s*/g, '|');
     
+    // 3. | で分割し、リスト要素を生成
     const parts = cleanedString.split('|');
+    
+    // 最初の要素（例: 例: レトルトご飯）をヘッダーとして抽出
     const header = parts[0].trim();
     const items = parts.slice(1);
     
     let html = '';
 
+    // ヘッダーを表示
     if (header) {
         html += `<span class="recommended-product-header">${header}</span>`;
     }
     
+    // リストアイテムを生成
     if (items.length > 0 && items.some(item => item.trim() !== '')) {
         html += '<ul class="recommended-product-list">';
         items.forEach(item => {
             const trimmedItem = item.trim();
             if (trimmedItem) {
-                // ★★★ ここが修正の核心 ★★★
-                // ":<br>" を改行とインデントを伴うHTMLに置換
-                const formattedItem = trimmedItem.replace(/:\s*<br>\s*/g, `<br><span class="recommended-sub-item">`);
-                
-                // <li> タグを閉じ、リストアイテムの「・」をカスタムCSSに任せるため、項目を生成
-                // 最後の <span> を閉じるために、ここで </span> を追加
-                html += `<li>${formattedItem}</span></li>`; 
+                html += `<li>${trimmedItem}</li>`;
             }
         });
         html += '</ul>';
