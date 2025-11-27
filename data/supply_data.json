@@ -39,21 +39,21 @@
           "item_en": "food_main_starch",
           "amount_per_person_day": 1,
           "meal_category": "main",
-          "recommended_product": "例 <br> ・レトルトご飯/おかゆ <br> ・アルファ化米 <br> ・乾めん <br> ・即席めん <br> ・パン缶詰 <br> ・もち <br> ・乾パン・クラッカー <br> ・シリアル"
+          "recommended_product": "例  ・レトルトご飯/おかゆ  ・アルファ化米  ・乾めん  ・即席めん  ・パン缶詰  ・もち  ・乾パン・クラッカー  ・シリアル"
         },
         {
           "item_name_jp": "副食（たんぱく質/おかず）",
           "item_en": "food_side_protein",
           "amount_per_person_day": 1,
           "meal_category": "side",
-          "recommended_product": "例 <br> ・魚や肉の缶詰 <br> ・そのまま食べられるレトルトのおかず <br> ・レトルト野菜料理 <br> ・野菜煮物缶詰 <br> ・ポテトサラダ缶 <br> ・野菜缶詰（たけのこ・トマト水煮・アスパラガス・コーン） <br> ・即席みそ汁・スープ・レトルトスープ <br> ・常温で日持ちする野菜（にんじん・たまねぎ・じゃがいも） <br> ・乾物（切り干し大根・干ししいたけ・ひじき）"
+          "recommended_product": "例  ・魚や肉の缶詰  ・そのまま食べられるレトルトのおかず  ・レトルト野菜料理  ・野菜煮物缶詰  ・ポテトサラダ缶  ・野菜缶詰（たけのこ・トマト水煮・アスパラガス・コーン）  ・即席みそ汁・スープ・レトルトスープ  ・常温で日持ちする野菜（にんじん・たまねぎ・じゃがいも）  ・乾物（切り干し大根・干ししいたけ・ひじき）"
         },
         {
           "item_name_jp": "行動食/補助食（エネルギー源）",
           "item_en": "food_snack_energy",
           "amount_per_person_day": 1,
           "meal_category": "snack",
-          "recommended_product": "例 <br> ・あめ <br> ・チョコレート <br> ・せんべい <br> ・ビスケット <br> ・果物缶詰 <br> ・ドライフルーツ <br> ・野菜ジュース <br> ・緑茶 <br> ・紅茶 <br> ・コーヒー"
+          "recommended_product": "例  ・あめ  ・チョコレート  ・せんべい  ・ビスケット  ・果物缶詰  ・ドライフルーツ  ・野菜ジュース  ・緑茶  ・紅茶  ・コーヒー"
         }
       ]
     },
