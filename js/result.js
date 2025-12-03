@@ -53,7 +53,6 @@ async function loadAllData() {
         appData.supply = supply;
         
         // 避難所データは座標を数値に変換し、無効なデータを除外
-        // ★★★ address要素を残しています ★★★
         appData.shelter = shelterRaw
             .map(s => {
                 const latNum = parseFloat(s.latitude);
@@ -107,7 +106,7 @@ function initResult() {
     document.getElementById('summary-duration-days').textContent = durationDays;
     
     // ★★★ 修正: 避難所名表示エリアの初期メッセージを設定 ★★★
-    document.getElementById('nearest-shelter-info-display').textContent = `情報をロード中...`;
+    document.getElementById('nearest-shelter-info-display').textContent = `最寄りの避難所を検索中...`;
 
     loadAllData().then(dataLoaded => {
         if (dataLoaded) {
@@ -116,21 +115,16 @@ function initResult() {
             displayGeneralNecessities();
             displayHazardInfoOnly(selectedCity); 
             
-            // ★★★ 変更点1: ページロード時に、地図APIなしで避難所名の特定を開始 ★★★
-            // この関数は、避難所名と住所を特定し、ボタンを表示する
-            findAndIdentifyNearestShelter();
+            // ★★★ 修正: ページロード時に避難所検索ロジックを開始する ★★★
+            const fullAddress = `愛知県${inputParams.city}${inputParams.addr}`;
+            loadGoogleMapsAPI(fullAddress); 
             
             // 地図表示ボタンのイベントリスナー設定
             const showMapButton = document.getElementById('show-map-button');
             const closeShelterButton = document.getElementById('close-shelter-button');
             
             if (showMapButton) {
-                // ★★★ 変更点2: ボタンクリックでAPIのロードとジオコーディングを開始 ★★★
-                showMapButton.addEventListener('click', function() {
-                    const fullAddress = `愛知県${inputParams.city}${inputParams.addr}`;
-                    loadGoogleMapsAPI(fullAddress); // APIのロードを開始し、ロード後にGeocodingを実行
-                    handleMapDisplay(); // 地図エリアの表示を切り替える
-                }); 
+                showMapButton.addEventListener('click', handleMapDisplay); 
             }
             if (closeShelterButton) {
                 closeShelterButton.addEventListener('click', closeShelterMap);
@@ -157,12 +151,6 @@ function loadGoogleMapsAPI(fullAddress) {
         geocodeAndDisplayShelter(fullAddress); 
         return;
     }
-
-    // ★★★ ロード中メッセージに更新 ★★★
-    document.getElementById('nearest-shelter-info-display').innerHTML = `
-        最寄りの避難所: <strong>${nearestShelterData.name}</strong> <span style="font-size:0.9em;">(住所: ${nearestShelterData.address})</span><br>
-        <span style="color: blue;">地図データと距離をロード中...</span>
-    `;
 
     const script = document.createElement('script');
     window.fullAddressForMap = fullAddress; // ジオコーディング用住所をグローバルに保持
@@ -191,7 +179,6 @@ window.initMapAndSearch = function() {
     
     // APIロード完了後、すぐに避難所検索を開始し、避難所名を特定する
     if (fullAddress) {
-        // Geocodingを実行し、最寄りの避難所を地図に描画
         geocodeAndDisplayShelter(fullAddress); 
     }
 }
@@ -200,75 +187,34 @@ window.initMapAndSearch = function() {
  * Geocoding（住所→座標変換）と避難所検索を実行する
  */
 function geocodeAndDisplayShelter(fullAddress) {
-    // 距離計算と地図表示を伴うため、ここでGeocodingを実行する
-    document.getElementById('nearest-shelter-info-display').innerHTML = `
-        最寄りの避難所: <strong>${nearestShelterData.name}</strong> <span style="font-size:0.9em;">(住所: ${nearestShelterData.address})</span><br>
-        <span style="color: blue;">住所を座標に変換中...</span>
-    `;
-
+    document.getElementById('nearest-shelter-info-display').textContent = '住所を座標に変換中...';
 
     geocoder.geocode({ 'address': fullAddress }, (results, status) => {
         if (status === 'OK' && results[0]) {
             const userLatLng = results[0].geometry.location;
             
-            // Geocodingが成功したら、最終的な距離計算と地図描画を実行
-            // ページロード時に特定されたnearestShelterDataを利用
-            calculateFinalDistance(userLatLng, true); 
+            // Geocodingが成功したら避難所を検索し、結果を画面に反映
+            findAndDisplayNearestShelter(userLatLng);
         } else {
             console.error('Geocodingに失敗しました: ' + status);
-            document.getElementById('nearest-shelter-info-display').innerHTML = `
-                最寄りの避難所: <strong>${nearestShelterData.name}</strong> (住所の特定に失敗したため、距離を計算できません)
-            `;
+            document.getElementById('nearest-shelter-info-display').textContent = `住所の特定に失敗しました（ステータス: ${status}）。住所を確認してください。`;
             document.getElementById('show-map-button').style.display = 'none'; // 失敗時はボタンも非表示
         }
     });
 }
 
 /**
- * ★★★ 変更点3: APIロードなしで、避難所名と住所の特定のみを行う関数 ★★★
- * 緯度経度ではなく、避難所リストの配列の最初の要素を最寄りと仮定する（簡易版）。
- * 厳密な距離計算はAPIロード後にGeocodingとgeometryライブラリを使って行います。
+ * 最寄りの避難所を計算し、情報欄に表示する。
+ * 地図の表示は、地図ボタンが押されたときのみ行う。
  */
-function findAndIdentifyNearestShelter() {
-    
-    // 実際にはユーザーの住所と避難所の緯度経度が必要だが、
-    // APIなしで正確な距離計算は不可能。ここではリストの最初の要素を「仮」として表示する。
-    // ****************************************************************************
-    // 【注意】本番環境では、ユーザーの住所から大まかな中心座標を事前に計算し、
-    // その座標に近い避難所をサーバーレス関数などで特定することが望ましいが、
-    // ここではクライアント側のJSONデータとAPIなしという制約で最も簡単な処理を行う。
-    // ****************************************************************************
+function findAndDisplayNearestShelter(centerLatLng) {
+    document.getElementById('nearest-shelter-info-display').textContent = '最寄りの避難所を検索中...'; 
 
-    if (appData.shelter.length > 0) {
-        const firstShelter = appData.shelter[0];
-        
-        // 仮データとしてグローバルに保存（地図ボタンが押されたときのために）
-        nearestShelterData = firstShelter; 
-        
-        // 避難所名と住所を即座に表示（距離はまだ計算できない）
-        document.getElementById('nearest-shelter-info-display').innerHTML = `
-            最寄りの避難所: <strong>${firstShelter.name}</strong> <span style="font-size:0.9em;">(住所: ${firstShelter.address})</span><br>
-            <span style="color: orange;">正確な距離と地図を表示するには「地図を見る」を押してください。</span>
-        `;
-        document.getElementById('show-map-button').style.display = 'block';
-    } else {
-        document.getElementById('nearest-shelter-info-display').textContent = "避難所データが見つかりませんでした。";
-        document.getElementById('show-map-button').style.display = 'none';
-    }
-}
-
-
-/**
- * ★★★ 変更点4: 最終的な距離計算を行い、情報欄を更新し、地図を描画する ★★★
- * Geocoding後に呼び出される。
- */
-function calculateFinalDistance(centerLatLng, renderMap = false) {
-    
-    let nearestShelter = nearestShelterData; // findAndIdentifyNearestShelterで特定された仮の避難所
+    let nearestShelter = null;
     let minDistance = Infinity;
-    
-    // APIロードが保証されているため、geometryライブラリを使って正しい距離を計算する
-    if (googleMapsLoaded && appData.shelter.length > 0) {
+    const isMapVisible = document.getElementById('map-area').style.display !== 'none';
+
+    if (google.maps.geometry && google.maps.geometry.spherical && appData.shelter.length > 0) {
         
         appData.shelter.forEach(shelter => {
             if (typeof shelter.lat !== 'number' || typeof shelter.lng !== 'number') return; 
@@ -286,21 +232,23 @@ function calculateFinalDistance(centerLatLng, renderMap = false) {
     if (nearestShelter) {
         const distanceKm = (minDistance / 1000).toFixed(2);
         
-        // ★★★ 最終的な避難所データをグローバルに保存 ★★★
+        // ★★★ 避難所データをグローバルに保存 (地図表示時に使用) ★★★
         nearestShelterData = {
             ...nearestShelter,
             centerLatLng: centerLatLng, 
             distanceKm: distanceKm
         };
         
-        // ★★★ 最終結果を画面に表示（距離を含む） ★★★
+        // ★★★ 避難所名表示エリアを更新 (ページロード時に実行される) ★★★
         document.getElementById('nearest-shelter-info-display').innerHTML = `
             最寄りの避難所: <strong>${nearestShelter.name}</strong> (約 ${distanceKm} km)
-            <span style="font-size:0.9em;">[住所: ${nearestShelter.address}]</span>
         `;
         
-        // 地図描画が要求された場合、マーカーなどを描画
-        if (renderMap && map) {
+        // ★★★ 地図ボタンを表示 ★★★
+        document.getElementById('show-map-button').style.display = 'block';
+
+        // 地図が表示状態なら、マーカーなどを描画 (ボタンクリックで表示された場合)
+        if (isMapVisible && map) {
              renderShelterMap(nearestShelterData);
         }
 
@@ -310,14 +258,13 @@ function calculateFinalDistance(centerLatLng, renderMap = false) {
     }
 }
 
-
 /**
- * 地図描画専用のヘルパー関数
+ * 地図描画専用のヘルパー関数 (新規追加)
  */
 function renderShelterMap(data) {
     if (!map || !data || !data.centerLatLng) return;
 
-    // マーカーをリセットする処理をここに追加するのが望ましいですが、ここでは単純に新規作成
+    // マーカーをリセットする処理をここに含めるのが望ましいですが、ここでは単純に新規作成
     
     // マップの表示を更新
     map.setCenter(data.centerLatLng);
@@ -351,7 +298,7 @@ function handleMapDisplay() {
 
 
     if (!nearestShelterData) {
-         shelterInfoEl.textContent = 'エラー: 避難所情報が特定できていません。地図機能を利用するには「地図を見る」ボタンを押して下さい。';
+         shelterInfoEl.textContent = 'エラー: 避難所情報が特定できていません。ページを再読み込みしてください。';
          return;
     }
 
@@ -365,11 +312,7 @@ function handleMapDisplay() {
     // 地図が隠れた状態で初期化された場合、リサイズイベントをトリガーして地図を正しく描画
     if (map) {
         google.maps.event.trigger(map, 'resize');
-        // 地図を閉じても避難所データは保持されているため、再描画
-        // ただし、この時点で既に calculateFinalDistance が走っているはず
-        if (nearestShelterData.centerLatLng) {
-            renderShelterMap(nearestShelterData);
-        }
+        renderShelterMap(nearestShelterData);
     }
 }
 
@@ -436,7 +379,7 @@ function displayHazardInfoOnly(selectedCity) {
 // ★★★ 新規追加: 推奨品目の文字列をHTMLリストに変換するヘルパー関数 ★★★
 // ----------------------------------------------------
 
-// result.js の formatRecommendedProduct 関数
+// result.js の formatRecommendedProduct 関数 (修正後)
 
 /**
  * JSON内の '例 ・〇〇・〇〇' 形式の文字列をHTMLリストに変換する。
