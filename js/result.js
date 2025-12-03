@@ -115,28 +115,20 @@ function initResult() {
             displayGeneralNecessities();
             displayHazardInfoOnly(selectedCity); 
             
-            // ★★★ 変更点1: ページロード時の loadGoogleMapsAPI(fullAddress) の呼び出しを削除 ★★★
-            // 地図機能はボタンが押されたときに開始されます。
+            // ★★★ 修正: ページロード時に避難所検索ロジックを開始する ★★★
+            const fullAddress = `愛知県${inputParams.city}${inputParams.addr}`;
+            loadGoogleMapsAPI(fullAddress); 
             
             // 地図表示ボタンのイベントリスナー設定
             const showMapButton = document.getElementById('show-map-button');
             const closeShelterButton = document.getElementById('close-shelter-button');
             
             if (showMapButton) {
-                // ★★★ 変更点2: ボタンクリックでAPIのロードと検索を開始するように修正 ★★★
-                showMapButton.addEventListener('click', function() {
-                    const fullAddress = `愛知県${inputParams.city}${inputParams.addr}`;
-                    loadGoogleMapsAPI(fullAddress); // APIのロードを開始
-                    handleMapDisplay(); // 地図エリアの表示を切り替える
-                }); 
+                showMapButton.addEventListener('click', handleMapDisplay); 
             }
             if (closeShelterButton) {
                 closeShelterButton.addEventListener('click', closeShelterMap);
             }
-
-            // ★★★ 変更点3: APIロードを待たずに、まずGeocodingの処理を除いた避難所検索の初期処理を実行 ★★★
-            // この関数内で最寄りの避難所名のみ特定・表示する処理を実行します。
-            findAndIdentifyNearestShelter();
 
         } else {
             document.getElementById('hazard-info-section').innerHTML = "<p>データ読み込みエラー</p>";
@@ -159,9 +151,6 @@ function loadGoogleMapsAPI(fullAddress) {
         geocodeAndDisplayShelter(fullAddress); 
         return;
     }
-
-    // ★★★ ロード中メッセージに更新 ★★★
-    document.getElementById('nearest-shelter-info-display').textContent = '地図データロード中...';
 
     const script = document.createElement('script');
     window.fullAddressForMap = fullAddress; // ジオコーディング用住所をグローバルに保持
@@ -190,7 +179,6 @@ window.initMapAndSearch = function() {
     
     // APIロード完了後、すぐに避難所検索を開始し、避難所名を特定する
     if (fullAddress) {
-        // Geocodingを実行し、最寄りの避難所を地図に描画
         geocodeAndDisplayShelter(fullAddress); 
     }
 }
@@ -206,7 +194,7 @@ function geocodeAndDisplayShelter(fullAddress) {
             const userLatLng = results[0].geometry.location;
             
             // Geocodingが成功したら避難所を検索し、結果を画面に反映
-            findAndDisplayNearestShelter(userLatLng, true); // 地図描画を有効化
+            findAndDisplayNearestShelter(userLatLng);
         } else {
             console.error('Geocodingに失敗しました: ' + status);
             document.getElementById('nearest-shelter-info-display').textContent = `住所の特定に失敗しました（ステータス: ${status}）。住所を確認してください。`;
@@ -215,36 +203,18 @@ function geocodeAndDisplayShelter(fullAddress) {
     });
 }
 
-
-/**
- * ★★★ 変更点4: ページロード時に実行される避難所名特定処理（API依存部分を除く）を分離 ★★★
- * 緯度経度ではなく住所から、最寄りの避難所を検索し、情報欄に表示する（地図機能は実行しない）。
- */
-function findAndIdentifyNearestShelter() {
-    // 地図機能が不要なため、APIロードを待たずに、Geocodingを除いた処理で最寄りの避難所名だけを特定・表示したいが、
-    // 距離計算にはユーザー住所の緯度経度（Geocodingの結果）とAPI（geometryライブラリ）が必須であるため、
-    // ここでは「最寄りの避難所検索は地図機能に統合されている」というメッセージを出すに留めるのが現実的です。
-    
-    document.getElementById('nearest-shelter-info-display').innerHTML = `
-        最寄りの避難所の場所を特定するには<br>「<strong>地図を見る</strong>」ボタンを押してください。
-    `;
-    document.getElementById('show-map-button').style.display = 'block';
-}
-
-
 /**
  * 最寄りの避難所を計算し、情報欄に表示する。
- * @param {google.maps.LatLng} centerLatLng - ユーザーの緯度経度
- * @param {boolean} renderMap - 地図にマーカーを描画するかどうか
+ * 地図の表示は、地図ボタンが押されたときのみ行う。
  */
-function findAndDisplayNearestShelter(centerLatLng, renderMap = false) {
+function findAndDisplayNearestShelter(centerLatLng) {
     document.getElementById('nearest-shelter-info-display').textContent = '最寄りの避難所を検索中...'; 
 
     let nearestShelter = null;
     let minDistance = Infinity;
-    
-    // APIロードが保証されているため、geometryライブラリの存在をチェック
-    if (googleMapsLoaded && appData.shelter.length > 0) {
+    const isMapVisible = document.getElementById('map-area').style.display !== 'none';
+
+    if (google.maps.geometry && google.maps.geometry.spherical && appData.shelter.length > 0) {
         
         appData.shelter.forEach(shelter => {
             if (typeof shelter.lat !== 'number' || typeof shelter.lng !== 'number') return; 
@@ -269,7 +239,7 @@ function findAndDisplayNearestShelter(centerLatLng, renderMap = false) {
             distanceKm: distanceKm
         };
         
-        // ★★★ 避難所名表示エリアを更新 ★★★
+        // ★★★ 避難所名表示エリアを更新 (ページロード時に実行される) ★★★
         document.getElementById('nearest-shelter-info-display').innerHTML = `
             最寄りの避難所: <strong>${nearestShelter.name}</strong> (約 ${distanceKm} km)
         `;
@@ -277,8 +247,8 @@ function findAndDisplayNearestShelter(centerLatLng, renderMap = false) {
         // ★★★ 地図ボタンを表示 ★★★
         document.getElementById('show-map-button').style.display = 'block';
 
-        // 地図描画が要求された場合、マーカーなどを描画
-        if (renderMap && map) {
+        // 地図が表示状態なら、マーカーなどを描画 (ボタンクリックで表示された場合)
+        if (isMapVisible && map) {
              renderShelterMap(nearestShelterData);
         }
 
@@ -289,13 +259,12 @@ function findAndDisplayNearestShelter(centerLatLng, renderMap = false) {
 }
 
 /**
- * 地図描画専用のヘルパー関数
+ * 地図描画専用のヘルパー関数 (新規追加)
  */
 function renderShelterMap(data) {
     if (!map || !data || !data.centerLatLng) return;
 
-    // マーカーをリセットする処理をここに追加することで、地図の再描画時の重複を防げます。
-    // (ここでは簡単のため省略)
+    // マーカーをリセットする処理をここに含めるのが望ましいですが、ここでは単純に新規作成
     
     // マップの表示を更新
     map.setCenter(data.centerLatLng);
@@ -329,7 +298,7 @@ function handleMapDisplay() {
 
 
     if (!nearestShelterData) {
-         shelterInfoEl.textContent = 'エラー: 避難所情報が特定できていません。地図機能を利用するには「地図を見る」ボタンを押して下さい。';
+         shelterInfoEl.textContent = 'エラー: 避難所情報が特定できていません。ページを再読み込みしてください。';
          return;
     }
 
@@ -343,7 +312,6 @@ function handleMapDisplay() {
     // 地図が隠れた状態で初期化された場合、リサイズイベントをトリガーして地図を正しく描画
     if (map) {
         google.maps.event.trigger(map, 'resize');
-        // 地図を閉じても避難所データは保持されているため、再描画
         renderShelterMap(nearestShelterData);
     }
 }
@@ -411,7 +379,7 @@ function displayHazardInfoOnly(selectedCity) {
 // ★★★ 新規追加: 推奨品目の文字列をHTMLリストに変換するヘルパー関数 ★★★
 // ----------------------------------------------------
 
-// result.js の formatRecommendedProduct 関数
+// result.js の formatRecommendedProduct 関数 (修正後)
 
 /**
  * JSON内の '例 ・〇〇・〇〇' 形式の文字列をHTMLリストに変換する。
