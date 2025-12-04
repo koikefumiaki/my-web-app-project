@@ -239,9 +239,11 @@ function findAndDisplayNearestShelter(centerLatLng) {
             distanceKm: distanceKm
         };
         
-        // ★★★ 避難所名表示エリアを更新 (ページロード時に実行される) ★★★
+        // ★★★ 避難所名表示エリアを更新 (修正箇所) ★★★
+        // 住所を「住所：〇〇」の形式で改行して表示
         document.getElementById('nearest-shelter-info-display').innerHTML = `
-            最寄りの避難所: <strong>${nearestShelter.name}</strong> (約 ${distanceKm} km)
+            最寄りの避難所: <strong>${nearestShelter.name}</strong> (約 ${distanceKm} km)<br>
+            <span style="font-size:0.9em;">住所：${nearestShelter.address}</span>
         `;
         
         // ★★★ 地図ボタンを表示 ★★★
