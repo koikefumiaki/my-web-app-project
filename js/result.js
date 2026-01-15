@@ -7,8 +7,8 @@
 // 1. 定数とグローバル変数の定義
 // ----------------------------------------------------
 
-const API_KEY = "AIzaSyAV0j-JNMRDpyvwk-6OxhpPzKLhG5fT9IE"; 
-const GEMINI_API_KEY = "AIzaSyBj5lXCuekTyLN9bVuIYkY-kIYKxijRwrs"; 
+const API_KEY = CONFIG.GOOGLE_MAPS_API_KEY; 
+const GEMINI_API_KEY = CONFIG.GEMINI_API_KEY;
 const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
 
 const DATA_PATHS = {
