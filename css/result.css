@@ -331,3 +331,51 @@
     font-weight: bold;
     color: #2980b9; /* 青系の強調色 */
 }
+
+.ai-box-container {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #f0f7ff; /* 薄い青色でAIらしさを演出 */
+    border-radius: 10px;
+    border: 1px solid #cce3ff;
+}
+
+.ai-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    color: #0056b3;
+}
+
+.ai-icon {
+    margin-right: 8px;
+    font-size: 1.2em;
+}
+
+#ai-proposal-area {
+    font-size: 0.95em;
+    line-height: 1.6;
+    color: #333;
+}
+
+/* AIが返してくるリストのスタイル */
+#ai-proposal-area ul {
+    padding-left: 20px;
+    margin-top: 10px;
+}
+
+#ai-proposal-area li {
+    margin-bottom: 8px;
+}
+
+.ai-loading {
+    color: #666;
+    font-style: italic;
+    animation: blink 1.5s infinite;
+}
+
+@keyframes blink {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
