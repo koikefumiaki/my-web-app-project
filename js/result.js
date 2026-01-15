@@ -7,7 +7,10 @@
 // 1. 定数とグローバル変数の定義 (home.jsと共通)
 // ----------------------------------------------------
 
-const API_KEY = "AIzaSyAV0j-JNMRDpyvwk-6OxhpPzKLhG5fT9IE"; // ★★★ Google Maps APIキーに置き換えてください ★★★
+const API_KEY = CONFIG.GOOGLE_MAPS_API_KEY; 
+const GEMINI_API_KEY = CONFIG.GEMINI_API_KEY;
+const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
+
 const DATA_PATHS = {
     CITIES: '/my-web-app-project/data/aichi_cities.json', 
     HAZARD: '/my-web-app-project/data/hazard_data.json',   
