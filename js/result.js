@@ -7,10 +7,7 @@
 // 1. 定数とグローバル変数の定義 (home.jsと共通)
 // ----------------------------------------------------
 
-const API_KEY = CONFIG.GOOGLE_MAPS_API_KEY; 
-const GEMINI_API_KEY = CONFIG.GEMINI_API_KEY;
-const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
-
+const API_KEY = "AIzaSyAV0j-JNMRDpyvwk-6OxhpPzKLhG5fT9IE"; // ★★★ Google Maps APIキーに置き換えてください ★★★
 const DATA_PATHS = {
     CITIES: '/my-web-app-project/data/aichi_cities.json', 
     HAZARD: '/my-web-app-project/data/hazard_data.json',   
@@ -117,10 +114,7 @@ function initResult() {
             calculateAndDisplaySupply(familySize, durationDays);
             displayGeneralNecessities();
             displayHazardInfoOnly(selectedCity); 
-            const aiArea = document.getElementById('ai-proposal-area'); // HTMLにこのIDのdivがある前提
-        if (aiArea) {
-            fetchAIGeminiProposal(familySize, durationDays, selectedCity, aiArea);
-        }
+            
             // ★★★ 修正: ページロード時に避難所検索ロジックを開始する ★★★
             const fullAddress = `愛知県${inputParams.city}${inputParams.addr}`;
             loadGoogleMapsAPI(fullAddress); 
@@ -559,57 +553,6 @@ function displayGeneralNecessities() {
     });
 
     container.innerHTML = htmlContent;
-}
-
-// ----------------------------------------------------
-// 7. 生成AI (Gemini) 連携ロジック ★新規追加
-// ----------------------------------------------------
-
-/**
- * Gemini APIを使用して、パーソナライズされた備蓄献立を生成する
- */
-async function fetchAIGeminiProposal(size, days, city, displayElement) {
-    displayElement.innerHTML = `<p class="loading-text">AIが${city}での生活に合わせた献立を考案中...</p>`;
-
-    const prompt = `
-        あなたは愛知県の防災専門家です。以下の条件の家族に最適な「3日〜7日間の備蓄食料メニュー」を提案してください。
-        
-        条件：
-        - 居住地：愛知県${city}
-        - 家族構成：${size}人分
-        - 備蓄日数：${days}日分
-
-        以下の3つのカテゴリで、具体的な品目と「なぜそれがおすすめか」を簡潔に回答してください。
-        1. 主食（例：アルファ米、レトルト粥など）
-        2. 副食（例：缶詰、レトルト惣菜など）
-        3. 補助食（例：ゼリー飲料、菓子類、野菜ジュースなど）
-
-        ※回答は親しみやすい日本語で、箇条書きを使ってHTML形式（<ul><li>など）で出力してください。
-    `;
-
-    try {
-        const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                contents: [{ parts: [{ text: prompt }] }]
-            })
-        });
-
-        const data = await response.json();
-        const aiText = data.candidates[0].content.parts[0].text;
-        
-        // 結果を表示（markdown形式で返ってくることが多いため、簡易的に表示）
-        displayElement.innerHTML = `
-            <div class="ai-response-box">
-                <h4>✨ AIによるパーソナル備蓄アドバイス</h4>
-                ${aiText}
-            </div>
-        `;
-    } catch (error) {
-        console.error("Gemini API Error:", error);
-        displayElement.innerHTML = "<p>AI提案の取得に失敗しました。従来の備蓄リストを参考にしてください。</p>";
-    }
 }
 
 // ----------------------------------------------------
