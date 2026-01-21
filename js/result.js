@@ -1,18 +1,19 @@
 // =====================================================================
 // 愛知マイ備蓄ナビ - RESULT画面ロジック (result.js)
-// 修正内容: タイポ (iNaN -> isNaN) を修正し、全体の停止を防止
+// GitHub Pages 対応版 (相対パス修正)
 // =====================================================================
 
-// 1. 定数とグローバル変数の定義
-const API_KEY = CONFIG.GOOGLE_MAPS_API_KEY; 
-const GEMINI_API_KEY = CONFIG.GEMINI_API_KEY; 
+// CONFIGが読み込めなかった場合の安全策
+const API_KEY = (typeof CONFIG !== 'undefined') ? CONFIG.GOOGLE_MAPS_API_KEY : ""; 
+const GEMINI_API_KEY = (typeof CONFIG !== 'undefined') ? CONFIG.GEMINI_API_KEY : ""; 
 const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
 
+// パスを相対パス（./data/...）に変更
 const DATA_PATHS = {
-    CITIES: '/my-web-app-project/data/aichi_cities.json', 
-    HAZARD: '/my-web-app-project/data/hazard_data.json',   
-    SUPPLY: '/my-web-app-project/data/supply_data.json',   
-    SHELTER: '/my-web-app-project/data/shelter_list.json'  
+    CITIES: './data/aichi_cities.json', 
+    HAZARD: './data/hazard_data.json',   
+    SUPPLY: './data/supply_data.json',   
+    SHELTER: './data/shelter_list.json'  
 };
 
 let appData = {};
@@ -21,13 +22,13 @@ let googleMapsLoaded = false;
 let inputParams = {};
 let nearestShelterData = null; 
 
-// 2. データの読み込み処理
 async function loadAllData() {
+    console.log("データの読み込みを開始します...");
     const loadPromises = [
-        fetch(DATA_PATHS.CITIES).then(res => res.json()).catch(() => []), 
-        fetch(DATA_PATHS.HAZARD).then(res => res.json()).catch(() => []),
-        fetch(DATA_PATHS.SUPPLY).then(res => res.json()).catch(() => ({unit_standards: [], general_necessities: []})),
-        fetch(DATA_PATHS.SHELTER).then(res => res.json()).catch(() => [])
+        fetch(DATA_PATHS.CITIES).then(res => res.ok ? res.json() : []), 
+        fetch(DATA_PATHS.HAZARD).then(res => res.ok ? res.json() : []),
+        fetch(DATA_PATHS.SUPPLY).then(res => res.ok ? res.json() : {unit_standards: [], general_necessities: []}),
+        fetch(DATA_PATHS.SHELTER).then(res => res.ok ? res.json() : [])
     ];
 
     try {
@@ -36,23 +37,22 @@ async function loadAllData() {
         appData.hazard = hazard;
         appData.supply = supply;
         
-        appData.shelter = shelterRaw.map(s => {
+        appData.shelter = (shelterRaw || []).map(s => {
             const latNum = parseFloat(s.latitude);
             const lngNum = parseFloat(s.longitude);
-            // 【重要修正】iNaN を isNaN に修正しました
             return (isNaN(latNum) || isNaN(lngNum)) ? null : {
                 name: s.name, lat: latNum, lng: lngNum, address: s.address || '住所情報なし'
             };
         }).filter(s => s !== null);
         
+        console.log("データの読み込みに成功しました");
         return true;
     } catch (error) {
-        console.error("データロード失敗:", error);
+        console.error("データ読み込みエラー:", error);
         return false;
     }
 }
 
-// 3. 初期化処理
 function initResult() {
     const params = new URLSearchParams(window.location.search);
     const selectedCity = params.get('city');
@@ -63,7 +63,7 @@ function initResult() {
     inputParams = { city: selectedCity, size: familySize, days: durationDays, addr: address };
     
     if (!selectedCity || !familySize || !durationDays || !address) {
-        alert("入力情報が足りません。ホームに戻ります。");
+        alert("必要な入力情報がありません。ホーム画面に戻ります。");
         window.location.href = 'index.html';
         return;
     }
@@ -74,7 +74,6 @@ function initResult() {
 
     loadAllData().then(dataLoaded => {
         if (dataLoaded) {
-            // 他の機能が表示されない原因は、ここより上の loadAllData 内でエラーが起きていたためです
             calculateAndDisplaySupply(familySize, durationDays); 
             displayGeneralNecessities();                        
             displayHazardInfoOnly(selectedCity);                 
@@ -87,25 +86,24 @@ function initResult() {
             const closeBtn = document.getElementById('close-shelter-button');
             if (showBtn) showBtn.addEventListener('click', handleMapDisplay); 
             if (closeBtn) closeBtn.addEventListener('click', closeShelterMap);
+        } else {
+            alert("データの読み込みに失敗しました。パス設定を確認してください。");
         }
     });
 }
 
-// 4. AI提案 (Gemini) ロジック
 function prepareAISection(city, size, days) {
     const titleEl = document.getElementById('ai-title');
-    if (titleEl) {
-        titleEl.textContent = `✨ AIによる${city}限定・特別備蓄メニュー`;
-    }
-
+    if (titleEl) titleEl.textContent = `✨ AIによる${city}限定・特別備蓄メニュー`;
     const aiArea = document.getElementById('ai-proposal-area');
-    if (aiArea) {
-        fetchAIGeminiProposal(size, days, city, aiArea);
-    }
+    if (aiArea) fetchAIGeminiProposal(size, days, city, aiArea);
 }
 
 async function fetchAIGeminiProposal(size, days, city, displayElement) {
-    if (!GEMINI_API_KEY) return;
+    if (!GEMINI_API_KEY) {
+        displayElement.innerHTML = "<p>APIキーが正しく読み込めていません。</p>";
+        return;
+    }
     const prompt = `あなたは愛知県の防災専門家です。愛知県${city}に住む${size}人家族が、災害時に${days}日間生き延びるための、愛知の食文化を取り入れた具体的な備蓄メニューを提案してください。回答はHTMLの<ul><li>タグのみを使用してください。`;
 
     try {
@@ -115,16 +113,14 @@ async function fetchAIGeminiProposal(size, days, city, displayElement) {
             body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
         });
         const data = await response.json();
-        if (data.candidates && data.candidates[0].content) {
+        if (data.candidates) {
             displayElement.innerHTML = data.candidates[0].content.parts[0].text;
         }
     } catch (e) {
-        console.error("AI Error:", e);
         displayElement.innerHTML = "<p>AI提案の取得に失敗しました。</p>";
     }
 }
 
-// 5. 既存機能
 function calculateAndDisplaySupply(familySize, durationDays) {
     const standards = appData.supply.unit_standards;
     const container = document.getElementById('detailed-supply-list');
@@ -161,7 +157,7 @@ function displayGeneralNecessities() {
 }
 
 function displayHazardInfoOnly(selectedCity) {
-    const hazardData = appData.hazard.find(d => d.city_name_jp === selectedCity); 
+    const hazardData = (appData.hazard || []).find(d => d.city_name_jp === selectedCity); 
     const maxShindoEl = document.getElementById('max-shindo');
     const tsunamiStatusEl = document.getElementById('tsunami-height-status');
     if (hazardData && maxShindoEl && tsunamiStatusEl) {
@@ -170,9 +166,9 @@ function displayHazardInfoOnly(selectedCity) {
     }
 }
 
-// 6. 地図関連
 function loadGoogleMapsAPI(fullAddress) {
     if (googleMapsLoaded) { geocodeAndDisplayShelter(fullAddress); return; }
+    if (!API_KEY) return;
     const script = document.createElement('script');
     window.fullAddressForMap = fullAddress; 
     script.src = `https://maps.googleapis.com/maps/api/js?key=${API_KEY}&libraries=geometry&callback=initMapAndSearch`; 
