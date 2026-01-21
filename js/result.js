@@ -1,10 +1,9 @@
 // =====================================================================
 // 愛知マイ備蓄ナビ - RESULT画面ロジック (result.js)
+// 役割: 全ての機能を正常に動作させ、AI提案を統合する
 // =====================================================================
 
-// ----------------------------------------------------
 // 1. 定数とグローバル変数の定義
-// ----------------------------------------------------
 const API_KEY = CONFIG.GOOGLE_MAPS_API_KEY; 
 const GEMINI_API_KEY = CONFIG.GEMINI_API_KEY; 
 const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
@@ -22,9 +21,7 @@ let googleMapsLoaded = false;
 let inputParams = {};
 let nearestShelterData = null; 
 
-// ----------------------------------------------------
 // 2. データの読み込み処理
-// ----------------------------------------------------
 async function loadAllData() {
     const loadPromises = [
         fetch(DATA_PATHS.CITIES).then(res => res.json()).catch(() => []), 
@@ -41,19 +38,18 @@ async function loadAllData() {
         appData.shelter = shelterRaw.map(s => {
             const latNum = parseFloat(s.latitude);
             const lngNum = parseFloat(s.longitude);
-            return (isNaN(latNum) || isNaN(lngNum)) ? null : {
+            return (isNaN(latNum) || iNaN(lngNum)) ? null : {
                 name: s.name, lat: latNum, lng: lngNum, address: s.address || '住所情報なし'
             };
         }).filter(s => s !== null);
         return true;
     } catch (error) {
+        console.error("データロード失敗:", error);
         return false;
     }
 }
 
-// ----------------------------------------------------
-// 3. 初期化処理
-// ----------------------------------------------------
+// 3. 初期化処理 (全ての機能を順番に呼び出す)
 function initResult() {
     const params = new URLSearchParams(window.location.search);
     const selectedCity = params.get('city');
@@ -64,47 +60,46 @@ function initResult() {
     inputParams = { city: selectedCity, size: familySize, days: durationDays, addr: address };
     
     if (!selectedCity || !familySize || !durationDays || !address) {
-        alert("必要な入力情報がありません。");
+        alert("入力情報が足りません。ホームに戻ります。");
         window.location.href = 'index.html';
         return;
     }
 
+    // 基本情報の表示
     document.getElementById('target-full-address').textContent = `愛知県 ${selectedCity} ${address}`;
     document.getElementById('summary-family-size').textContent = familySize;
     document.getElementById('summary-duration-days').textContent = durationDays;
 
     loadAllData().then(dataLoaded => {
         if (dataLoaded) {
-            // ① 既存の備蓄計算結果を表示
-            calculateAndDisplaySupply(familySize, durationDays);
-            displayGeneralNecessities();
-            displayHazardInfoOnly(selectedCity); 
+            // --- 元の機能を実行 ---
+            calculateAndDisplaySupply(familySize, durationDays); // 備蓄リスト表示
+            displayGeneralNecessities();                        // 必需品リスト表示
+            displayHazardInfoOnly(selectedCity);                 // ハザード情報表示
             
-            // ② AI提案エリアを「動的に」追加（テンプレートリテラルを修正）
+            // --- AI機能を実行 ---
             prepareAISection(selectedCity, familySize, durationDays);
 
-            // ③ Google Maps 連携
-            const fullAddress = `愛知県${inputParams.city}${inputParams.addr}`;
+            // --- 地図機能を実行 ---
+            const fullAddress = `愛知県${selectedCity}${address}`;
             loadGoogleMapsAPI(fullAddress); 
             
-            document.getElementById('show-map-button').addEventListener('click', handleMapDisplay); 
-            document.getElementById('close-shelter-button').addEventListener('click', closeShelterMap);
+            // ボタンのイベント設定
+            const showBtn = document.getElementById('show-map-button');
+            const closeBtn = document.getElementById('close-shelter-button');
+            if (showBtn) showBtn.addEventListener('click', handleMapDisplay); 
+            if (closeBtn) closeBtn.addEventListener('click', closeShelterMap);
         }
     });
 }
 
-// ----------------------------------------------------
-// 4. AI提案 (Gemini API) 連携
-// ----------------------------------------------------
-// --- 4. 生成AI (Gemini) 連携ロジック ---
+// 4. AI提案 (Gemini) ロジック
 function prepareAISection(city, size, days) {
-    // 1. HTMLに書かれているタイトルを書き換える
     const titleEl = document.getElementById('ai-title');
     if (titleEl) {
         titleEl.textContent = `✨ AIによる${city}限定・特別備蓄メニュー`;
     }
 
-    // 2. AI回答エリアを取得
     const aiArea = document.getElementById('ai-proposal-area');
     if (aiArea) {
         fetchAIGeminiProposal(size, days, city, aiArea);
@@ -112,42 +107,40 @@ function prepareAISection(city, size, days) {
 }
 
 async function fetchAIGeminiProposal(size, days, city, displayElement) {
-    if (typeof CONFIG === 'undefined' || !CONFIG.GEMINI_API_KEY) {
-        displayElement.innerHTML = "<p>APIキーが設定されていません。</p>";
-        return;
-    }
-
-    const prompt = `あなたは愛知県の防災専門家です。愛知県${city}に住む${size}人家族が、災害時に${days}日間生き延びるための、愛知の食文化（赤味噌等）を取り入れた具体的な備蓄活用メニューを提案してください。回答はHTMLの<ul><li>タグのみを使用してください。`;
+    if (!GEMINI_API_KEY) return;
+    const prompt = `あなたは愛知県の防災専門家です。愛知県${city}に住む${size}人家族が、災害時に${days}日間生き延びるための、愛知の食文化を取り入れた具体的な備蓄メニューを提案してください。回答はHTMLの<ul><li>タグのみを使用してください。`;
 
     try {
-        const response = await fetch(`${GEMINI_API_URL}?key=${CONFIG.GEMINI_API_KEY}`, {
+        const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
         });
         const data = await response.json();
-        const aiText = data.candidates[0].content.parts[0].text;
-        displayElement.innerHTML = aiText;
+        if (data.candidates) {
+            displayElement.innerHTML = data.candidates[0].content.parts[0].text;
+        }
     } catch (e) {
         displayElement.innerHTML = "<p>AI提案の取得に失敗しました。</p>";
     }
 }
 
-// ----------------------------------------------------
-// 5. 既存機能（変更なし）
-// ----------------------------------------------------
+// 5. 既存の備蓄計算ロジック (supply_data.jsonを使用)
 function calculateAndDisplaySupply(familySize, durationDays) {
     const standards = appData.supply.unit_standards;
     const container = document.getElementById('detailed-supply-list');
-    let htmlContent = '';
+    if (!container || !standards) return;
 
+    let htmlContent = '';
     standards.forEach(item => {
-        const totalBaseAmount = item.amount_per_person_day * durationDays * familySize;
+        const totalAmount = item.amount_per_person_day * durationDays * familySize;
         htmlContent += `<div class="bichiku-category" style="margin-bottom:20px;">
-            <h4 style="border-bottom: 1px solid #eee;">${item.item_jp} (目安: ${totalBaseAmount}${item.unit})</h4><ul>`;
+            <h4 style="border-bottom: 2px solid #007bff; padding-bottom:5px;">${item.item_jp} (総量目安: ${totalAmount}${item.unit})</h4><ul>`;
         if (item.breakdown_items) {
             item.breakdown_items.forEach(bi => {
-                let count = item.item_en === 'water' ? Math.ceil(totalBaseAmount * bi.allocation_ratio / bi.volume_l) : bi.amount_per_person_day * durationDays * familySize;
+                let count = (item.item_en === 'water') 
+                    ? Math.ceil(totalAmount * bi.allocation_ratio / bi.volume_l) 
+                    : bi.amount_per_person_day * durationDays * familySize;
                 htmlContent += `<li><strong>${bi.item_name_jp}</strong>: ${count}${item.item_en === 'water' ? '本' : '個'}</li>`;
             });
         }
@@ -159,6 +152,8 @@ function calculateAndDisplaySupply(familySize, durationDays) {
 function displayGeneralNecessities() {
     const necessities = appData.supply.general_necessities;
     const container = document.getElementById('general-necessities-list');
+    if (!container || !necessities) return;
+
     let htmlContent = '';
     necessities.forEach(item => {
         htmlContent += `<li><strong>${item.item_jp}</strong>: ${item.unit_count}</li>`;
@@ -170,13 +165,13 @@ function displayHazardInfoOnly(selectedCity) {
     const hazardData = appData.hazard.find(d => d.city_name_jp === selectedCity); 
     const maxShindoEl = document.getElementById('max-shindo');
     const tsunamiStatusEl = document.getElementById('tsunami-height-status');
-    if (hazardData) {
+    if (hazardData && maxShindoEl && tsunamiStatusEl) {
         maxShindoEl.textContent = hazardData.max_shindo || '--';
-        tsunamiStatusEl.textContent = hazardData.max_tsunami_height_m > 0 ? `${hazardData.max_tsunami_height_m}m` : '心配ありません';
+        tsunamiStatusEl.textContent = (hazardData.max_tsunami_height_m > 0) ? `${hazardData.max_tsunami_height_m}m` : '心配ありません';
     }
 }
 
-// --- Google Maps 関連 ---
+// 6. Google Maps 関連
 function loadGoogleMapsAPI(fullAddress) {
     if (googleMapsLoaded) { geocodeAndDisplayShelter(fullAddress); return; }
     const script = document.createElement('script');
@@ -190,12 +185,13 @@ window.initMapAndSearch = function() {
     googleMapsLoaded = true;
     geocoder = new google.maps.Geocoder();
     map = new google.maps.Map(document.getElementById('map'), { center: { lat: 35.18, lng: 136.9 }, zoom: 10 });
-    geocodeAndDisplayShelter(window.fullAddressForMap);
+    if (window.fullAddressForMap) geocodeAndDisplayShelter(window.fullAddressForMap);
 }
 
 function geocodeAndDisplayShelter(addr) {
+    if (!geocoder) return;
     geocoder.geocode({ 'address': addr }, (results, status) => {
-        if (status === 'OK') findAndDisplayNearestShelter(results[0].geometry.location);
+        if (status === 'OK' && results[0]) findAndDisplayNearestShelter(results[0].geometry.location);
     });
 }
 
