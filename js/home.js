@@ -9,10 +9,10 @@
 
 const API_KEY = "AIzaSyAV0j-JNMRDpyvwk-6OxhpPzKLhG5fT9IE"; // ★★★ Google Maps APIキーに置き換えてください ★★★
 const DATA_PATHS = {
-    CITIES: '/my-web-app-project/data/aichi_cities.json', 
-    HAZARD: '/my-web-app-project/data/hazard_data.json',   
-    SUPPLY: '/my-web-app-project/data/supply_data.json',   
-    SHELTER: '/my-web-app-project/data/shelter_list.json'  
+    CITIES: 'data/aichi_cities.json', 
+    HAZARD: 'data/hazard_data.json',   
+    SUPPLY: 'data/supply_data.json',   
+    SHELTER: 'data/shelter_list.json'  
 };
 let appData = {};
 
@@ -163,7 +163,7 @@ function handleHomeSearch() {
         days: durationDays
     }).toString();
 
-    window.location.href = `/my-web-app-project/result.html?${query}`;
+    window.location.href = `result.html?${query}`;
 }
 
 // ----------------------------------------------------
