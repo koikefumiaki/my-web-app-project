@@ -7,7 +7,9 @@
 // 1. 定数とグローバル変数の定義 (home.jsと共通)
 // ----------------------------------------------------
 
-const API_KEY = "AIzaSyAV0j-JNMRDpyvwk-6OxhpPzKLhG5fT9IE"; // ★★★ Google Maps APIキーに置き換えてください ★★★
+const API_KEY = CONFIG.GOOGLE_MAPS_API_KEY; 
+const GEMINI_API_KEY = CONFIG.GEMINI_API_KEY;
+
 const DATA_PATHS = {
     CITIES: '/my-web-app-project/data/aichi_cities.json', 
     HAZARD: '/my-web-app-project/data/hazard_data.json',   
@@ -115,6 +117,11 @@ function initResult() {
             displayGeneralNecessities();
             displayHazardInfoOnly(selectedCity); 
             
+            const aiArea = document.getElementById('ai-proposal-area');
+        if (aiArea) {
+            fetchAIGeminiProposal(familySize, durationDays, selectedCity, aiArea);
+        }
+
             // ★★★ 修正: ページロード時に避難所検索ロジックを開始する ★★★
             const fullAddress = `愛知県${inputParams.city}${inputParams.addr}`;
             loadGoogleMapsAPI(fullAddress); 
@@ -561,3 +568,49 @@ function displayGeneralNecessities() {
 
 // DOMContentLoaded後に初期化関数を呼び出す
 document.addEventListener('DOMContentLoaded', initResult);
+
+// ----------------------------------------------------
+// 7. 生成AI (Gemini) 連携ロジック (パターンB用)
+// ----------------------------------------------------
+const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
+
+async function fetchAIGeminiProposal(size, days, city, displayElement) {
+    // config.js からキーを取得
+    if (typeof CONFIG === 'undefined' || !CONFIG.GEMINI_API_KEY) {
+        displayElement.innerHTML = "<p>APIキーが設定されていないため、AI提案を表示できません。</p>";
+        return;
+    }
+
+    // プロンプト（命令文）の作成
+    const prompt = `
+あなたは愛知県の防災専門家です。
+愛知県${city}に住む${size}人家族が、災害時に${days}日間生き延びるための「飽きない備蓄食料メニュー」を提案してください。
+
+以下の条件を守ってください：
+1. 愛知県のご当地食材（例：赤味噌、ういろう、きしめんの乾麺など）を取り入れた、元気が出る献立を1つ含めること。
+2. 家族人数（${size}人）を考慮し、調理が簡単なものを中心にすること。
+3. 出力は必ずHTMLの <ul> と <li> タグのみを使用し、余計な挨拶や解説は省くこと。
+    `;
+
+    try {
+        const response = await fetch(`${GEMINI_API_URL}?key=${CONFIG.GEMINI_API_KEY}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: prompt }] }]
+            })
+        });
+
+        const data = await response.json();
+        
+        if (data.candidates && data.candidates[0].content.parts[0].text) {
+            const aiText = data.candidates[0].content.parts[0].text;
+            displayElement.innerHTML = `<div>${aiText}</div>`;
+        } else {
+            throw new Error("AIからの回答が空でした。");
+        }
+    } catch (error) {
+        console.error("Gemini Error:", error);
+        displayElement.innerHTML = `<p>AI提案の読み込み中にエラーが発生しました。手動で備蓄リストを確認してください。</p>`;
+    }
+}
