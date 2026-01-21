@@ -1,6 +1,6 @@
 // =====================================================================
 // 愛知マイ備蓄ナビ - RESULT画面ロジック (result.js)
-// 役割: 全ての機能を正常に動作させ、AI提案を統合する
+// 修正内容: タイポ (iNaN -> isNaN) を修正し、全体の停止を防止
 // =====================================================================
 
 // 1. 定数とグローバル変数の定義
@@ -35,13 +35,16 @@ async function loadAllData() {
         appData.cities = cities;
         appData.hazard = hazard;
         appData.supply = supply;
+        
         appData.shelter = shelterRaw.map(s => {
             const latNum = parseFloat(s.latitude);
             const lngNum = parseFloat(s.longitude);
-            return (isNaN(latNum) || iNaN(lngNum)) ? null : {
+            // 【重要修正】iNaN を isNaN に修正しました
+            return (isNaN(latNum) || isNaN(lngNum)) ? null : {
                 name: s.name, lat: latNum, lng: lngNum, address: s.address || '住所情報なし'
             };
         }).filter(s => s !== null);
+        
         return true;
     } catch (error) {
         console.error("データロード失敗:", error);
@@ -49,7 +52,7 @@ async function loadAllData() {
     }
 }
 
-// 3. 初期化処理 (全ての機能を順番に呼び出す)
+// 3. 初期化処理
 function initResult() {
     const params = new URLSearchParams(window.location.search);
     const selectedCity = params.get('city');
@@ -65,26 +68,21 @@ function initResult() {
         return;
     }
 
-    // 基本情報の表示
     document.getElementById('target-full-address').textContent = `愛知県 ${selectedCity} ${address}`;
     document.getElementById('summary-family-size').textContent = familySize;
     document.getElementById('summary-duration-days').textContent = durationDays;
 
     loadAllData().then(dataLoaded => {
         if (dataLoaded) {
-            // --- 元の機能を実行 ---
-            calculateAndDisplaySupply(familySize, durationDays); // 備蓄リスト表示
-            displayGeneralNecessities();                        // 必需品リスト表示
-            displayHazardInfoOnly(selectedCity);                 // ハザード情報表示
-            
-            // --- AI機能を実行 ---
+            // 他の機能が表示されない原因は、ここより上の loadAllData 内でエラーが起きていたためです
+            calculateAndDisplaySupply(familySize, durationDays); 
+            displayGeneralNecessities();                        
+            displayHazardInfoOnly(selectedCity);                 
             prepareAISection(selectedCity, familySize, durationDays);
 
-            // --- 地図機能を実行 ---
             const fullAddress = `愛知県${selectedCity}${address}`;
             loadGoogleMapsAPI(fullAddress); 
             
-            // ボタンのイベント設定
             const showBtn = document.getElementById('show-map-button');
             const closeBtn = document.getElementById('close-shelter-button');
             if (showBtn) showBtn.addEventListener('click', handleMapDisplay); 
@@ -117,15 +115,16 @@ async function fetchAIGeminiProposal(size, days, city, displayElement) {
             body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
         });
         const data = await response.json();
-        if (data.candidates) {
+        if (data.candidates && data.candidates[0].content) {
             displayElement.innerHTML = data.candidates[0].content.parts[0].text;
         }
     } catch (e) {
+        console.error("AI Error:", e);
         displayElement.innerHTML = "<p>AI提案の取得に失敗しました。</p>";
     }
 }
 
-// 5. 既存の備蓄計算ロジック (supply_data.jsonを使用)
+// 5. 既存機能
 function calculateAndDisplaySupply(familySize, durationDays) {
     const standards = appData.supply.unit_standards;
     const container = document.getElementById('detailed-supply-list');
@@ -171,7 +170,7 @@ function displayHazardInfoOnly(selectedCity) {
     }
 }
 
-// 6. Google Maps 関連
+// 6. 地図関連
 function loadGoogleMapsAPI(fullAddress) {
     if (googleMapsLoaded) { geocodeAndDisplayShelter(fullAddress); return; }
     const script = document.createElement('script');
@@ -197,10 +196,12 @@ function geocodeAndDisplayShelter(addr) {
 
 function findAndDisplayNearestShelter(center) {
     let nearest = null; let minD = Infinity;
-    appData.shelter.forEach(s => {
-        const d = google.maps.geometry.spherical.computeDistanceBetween(center, new google.maps.LatLng(s.lat, s.lng));
-        if (d < minD) { minD = d; nearest = s; }
-    });
+    if (appData.shelter && google.maps.geometry) {
+        appData.shelter.forEach(s => {
+            const d = google.maps.geometry.spherical.computeDistanceBetween(center, new google.maps.LatLng(s.lat, s.lng));
+            if (d < minD) { minD = d; nearest = s; }
+        });
+    }
     if (nearest) {
         nearestShelterData = { ...nearest, centerLatLng: center };
         document.getElementById('nearest-shelter-info-display').innerHTML = `最寄り: <strong>${nearest.name}</strong> (約 ${(minD/1000).toFixed(2)}km)`;
