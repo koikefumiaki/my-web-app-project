@@ -96,26 +96,19 @@ function initResult() {
 // ----------------------------------------------------
 // 4. AI提案 (Gemini API) 連携
 // ----------------------------------------------------
+// --- 4. 生成AI (Gemini) 連携ロジック ---
 function prepareAISection(city, size, days) {
-    const container = document.getElementById('detailed-supply-list');
-    if (!container) return;
+    // 1. HTMLに書かれているタイトルを書き換える
+    const titleEl = document.getElementById('ai-title');
+    if (titleEl) {
+        titleEl.textContent = `✨ AIによる${city}限定・特別備蓄メニュー`;
+    }
 
-    const aiDiv = document.createElement('div');
-    aiDiv.className = 'ai-box-container';
-    aiDiv.style = "margin-top: 20px; padding: 15px; background-color: #f0f7ff; border: 1px solid #cce3ff; border-radius: 10px;";
-    
-    // 変数を正しく埋め込むためにバッククォートを使用
-    aiDiv.innerHTML = `
-        <h4 style="color: #0056b3; margin-bottom: 10px;">✨ AIによる${city}限定・特別備蓄メニュー</h4>
-        <div id="ai-proposal-area">
-            <p style="color: #666; font-style: italic;">AIがあなたの家族構成に合わせたメニューを考えています...</p>
-        </div>
-    `;
-    
-    // 計算結果リストの「後ろ」に追加
-    container.after(aiDiv);
-    
-    fetchAIGeminiProposal(size, days, city, document.getElementById('ai-proposal-area'));
+    // 2. AI回答エリアを取得
+    const aiArea = document.getElementById('ai-proposal-area');
+    if (aiArea) {
+        fetchAIGeminiProposal(size, days, city, aiArea);
+    }
 }
 
 async function fetchAIGeminiProposal(size, days, city, displayElement) {
